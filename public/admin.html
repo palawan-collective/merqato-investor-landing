@@ -1,0 +1,200 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>MerQato — Site Admin</title>
+<style>
+:root{--accent:#D6001C;--bg:#f6f4f0;--ink:#141414;--border:#d3d0c9}*{box-sizing:border-box}body{margin:0;background:var(--bg);font:14px/1.5 Arial,Helvetica,sans-serif;color:var(--ink)}h1,h2,h3{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}input,textarea,select{width:100%;padding:10px;border:1px solid #bcb9b3;border-radius:6px;background:white;color:#111}textarea{min-height:86px;resize:vertical}button{background:#fff;color:#161616;border:1px solid #c4c0b8;border-radius:6px;padding:10px 12px;font-weight:700}button:hover{border-color:#111}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button.danger{color:#a00017;border-color:#d6a3a7}.app{min-height:100vh;display:flex;flex-direction:column}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#151515;color:#fff;padding:12px 20px}.toolbar h1{font-size:19px}.toolbar h1 b{color:#D6001C}.toolbar small{font-size:11px;color:#cac7bf}.toolbar .actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.toolbar a{color:#fff}.main{display:grid;grid-template-columns:360px minmax(0,1fr);height:calc(100vh - 68px)}.side{background:#f6f4f0;border-right:1px solid var(--border);overflow:auto;padding:15px}.preview{position:relative;background:#dddbd7;overflow:hidden}.preview iframe{height:100%;width:100%;border:0;background:white}.sec{background:white;border:1px solid var(--border);border-radius:9px;padding:15px;margin-bottom:12px}.sec h2{font-size:15px;margin-bottom:12px}.hint{color:#68635e;font-size:12px;margin:6px 0 10px}.field{margin:10px 0}.field label{display:block;font-size:12px;font-weight:750;margin-bottom:5px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}.triple{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.row{display:flex;gap:7px;flex-wrap:wrap}.sec button{margin-top:5px}.selected{border-left:4px solid var(--accent)}#message{font-size:12px;color:#f1ddd8}#login{display:grid;place-items:center;min-height:100vh;padding:20px}#login .panel{background:white;max-width:420px;width:100%;padding:30px;border:1px solid #ddd5c9;border-radius:12px}#login h1{margin-bottom:10px}#login p{color:#605e5a}#login button{width:100%;margin-top:14px}#loginErr{color:#b00020}.inline{display:flex;align-items:center;gap:7px}.inline input{width:auto}.thumb{display:block;width:100%;max-height:100px;object-fit:contain;background:#eee;margin:10px 0}.status{padding:8px 10px;background:#ece9e2;border-radius:5px;font-size:12px}.section-name{font-size:13px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.section-list{display:flex;flex-direction:column;gap:7px}.section-item{border:1px solid #ddd;border-radius:6px;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;background:#faf9f7}.section-item button{padding:5px 8px;font-size:12px}.small{font-size:11px}.tools{display:flex;gap:4px}.tools button{white-space:nowrap}.tabnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;margin-bottom:10px}.tabnav button{font-size:12px;padding:8px 4px}.tabnav button.on{background:#141414;color:white}.hidden{display:none!important}@media(max-width:800px){.main{grid-template-columns:1fr;height:auto}.side{height:auto;max-height:none}.preview{height:80vh}.toolbar{padding:10px}.section-item{gap:3px}}
+</style><style id="mq-admin-readability">
+html,body{color-scheme:light!important}
+.side,.sec,.sec h2,.sec label,.sec p,.hint,.status,.section-name,.section-item{color:#111111!important}
+.side{background:#ede7d9!important}
+.sec,.section-item{background:#fffaf3!important}
+.sec label{font-weight:750!important;color:#181818!important}
+.sec input,.sec textarea,.sec select{background:#ffffff!important;color:#111111!important;-webkit-text-fill-color:#111111!important;opacity:1!important}
+.sec button,.tabnav button,.tools button{color:#111111!important;background:#ffffff!important}
+.sec button.primary,.tabnav button.on,.toolbar .primary{color:#ffffff!important;background:#D6001C!important;border-color:#D6001C!important}
+.toolbar{color:#fff!important}.toolbar button:not(.primary){color:#111!important;background:#fff!important}
+#message{color:#ffffff!important}
+</style><style id="mq-admin-contrast-lock">
+html,body,#app,.main,.side{color-scheme:light!important;background:#EDE7D9!important;color:#111!important}
+.toolbar,.toolbar *{color:#fff!important}.toolbar{background:#111!important}.toolbar h1 b{color:#D6001C!important}.toolbar small{color:#EDE7D9!important}
+.toolbar button,.toolbar a{background:#fff!important;color:#111!important}.toolbar button.primary{background:#D6001C!important;color:#fff!important}
+.side,.sec,.section-item{color:#111!important;text-shadow:none!important;filter:none!important;mix-blend-mode:normal!important}
+.side{background:#EDE7D9!important}.sec,.section-item{background:#FFFCF7!important;border-color:#B8ADA0!important}.sec h2,.sec h3,.sec label,.section-name{color:#111!important;font-weight:800!important}
+.hint,.sec p,.status{color:#3E3A35!important}.sec input,.sec textarea,.sec select,.section-item input{background:#fff!important;color:#111!important;-webkit-text-fill-color:#111!important;border:1px solid #83786F!important;box-shadow:none!important}
+.sec input::placeholder,.sec textarea::placeholder{color:#66615D!important;opacity:1!important}
+.side button,.tabnav button,.section-item button{background:#fff!important;color:#111!important;border:1px solid #888078!important}
+.side button.primary,.side .tabnav button.on,.side #applyTheme,.side #applySocial{background:#D6001C!important;color:#fff!important;border-color:#D6001C!important}
+.side button.danger{color:#9B0015!important}.side button:focus-visible,.side input:focus-visible,.side textarea:focus-visible{outline:2px solid #D6001C!important;outline-offset:2px!important}
+.status{background:#F0E8DC!important}.preview{background:#EDE7D9!important}#message{color:#fff!important}
+</style><style id="mq-media-admin-style">
+/* Independent readable admin surfaces, not inherited from public presentation. */
+#tab-media,#tab-media .sec,#tab-media .sec *{color:#111!important;text-shadow:none!important;opacity:1!important}
+#tab-media .sec{background:#FFFCF7!important;border:1px solid #c8c0b5!important}
+#tab-media input,#tab-media select{color:#111!important;background:#fff!important;-webkit-text-fill-color:#111!important}
+#tab-media button{background:#fff!important;color:#111!important;border:1px solid #9a9289!important}
+#tab-media button.primary{background:#D6001C!important;color:white!important;border-color:#D6001C!important}
+#mediaList{display:grid;gap:12px}
+.media-row{border:1px solid #bbb1a6;background:white;padding:12px;display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;align-items:start;min-width:0}
+.media-row img,.media-row video{width:88px;height:74px;object-fit:cover;background:#111;border-radius:3px}
+.media-row small{font-size:11px;color:#4d4944!important;display:block;overflow-wrap:anywhere;margin-bottom:5px}
+.media-row .row{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.media-row button{padding:6px 8px!important;font-size:11px!important}
+.media-row button.danger{color:#aa0018!important}
+.media-row input{min-width:0;width:100%}
+@media(max-width:640px){.media-row{grid-template-columns:68px minmax(0,1fr)}.media-row img,.media-row video{width:68px;height:60px}}
+</style></head><body>
+<div id="login"><div class="panel"><h1>Mer<span style="color:#D6001C">Q</span>ato Admin</h1><p>Log in to edit and publish the investor presentation.</p><form id="loginForm"><label for="password">Admin password</label><input id="password" type="password" required autocomplete="current-password"><button class="primary" type="submit">Sign in</button></form><p id="loginErr"></p><p class="small">Set <code>ADMIN_PASSWORD</code> in the server environment before launching. Edits are stored on the server.</p></div></div>
+<div id="app" class="app hidden"><header class="toolbar"><div><h1>Mer<b>Q</b>ato · Site Editor</h1><small>Click text, buttons, images or logos directly in the website preview to edit them.</small></div><div class="actions"><span id="message">Not saved</span><button id="refresh">Reload</button><button id="save" class="primary">Save & Publish</button><button id="logout">Log out</button></div></header>
+<div class="main"><aside class="side"><div class="tabnav"><button class="on" data-tab="edit">Edit</button><button data-tab="layout">Sections</button><button data-tab="theme">Theme & links</button><button data-tab="media">Media library</button></div>
+<div id="tab-edit"><div class="sec selected"><h2>Selected element</h2><p id="selectedHint" class="hint">Click an element inside the page preview.</p><div id="fields" class="hidden"><div class="field" id="textField"><label>Text / label</label><textarea id="editText" rows="3"></textarea><button id="applyText">Apply text</button></div><div class="field" id="urlField"><label>Link destination (https:// or mailto: or #section)</label><input id="editUrl" placeholder="https://example.com"><button id="applyUrl">Update URL</button></div><div class="field hidden" id="imageField"><label>Image URL or upload</label><input id="imageUrl"><input id="imageUpload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="margin-top:6px"><button id="applyImage">Update image</button><img id="imagePreview" class="thumb" alt="Image preview"></div><div class="row"><button id="applyBold">Bold</button><button id="applyItalic">Italic</button><button id="clearInline">Clear inline formatting</button><button id="removeSelected" class="danger">Delete selected item</button></div></div></div>
+<div class="sec"><h2>Quick editing</h2><p class="hint">Select any heading or paragraph to change its text. Select the actual logo hyperlink to edit its destination. Select an image to replace it.</p><button id="headSelect">Edit header logo</button><button id="footSelect">Edit footer</button><button id="portfolioSelect">Open portfolio section</button><button id="openMedia">Manage images &amp; videos</button></div>
+<div class="sec"><h2>Portfolio item</h2><p class="hint">Adds a project card to the existing portfolio section. Select its text and link in the preview to customize.</p><button id="addProject">+ Add portfolio item</button></div></div>
+<div id="tab-layout" class="hidden"><div class="sec"><h2>Sections</h2><p class="hint">Choose a section, move it, or delete it. You can add new sections and edit the content directly in the preview.</p><div class="section-list" id="sectionList"></div></div><div class="sec"><h2>Add section</h2><label for="newSectionTitle">Section title</label><input id="newSectionTitle" placeholder="New case study"><div class="field"><label>Layout</label><select id="newSectionType"><option value="light">Ivory editorial</option><option value="dark">Dark editorial</option><option value="cards">Three-column cards</option></select></div><button class="primary" id="addSection">+ Add section</button></div></div>
+<div id="tab-media" class="hidden">
+<div class="sec"><h2>Images &amp; videos</h2><p class="hint">Add as many photos or videos as needed to any portfolio card or page section. Select a destination, upload from your device, then Publish to save.</p>
+<div class="field"><label for="mediaTarget">Destination</label><select id="mediaTarget"></select></div>
+<div class="field"><label for="mediaFiles">Upload images or videos (multiple allowed)</label><input id="mediaFiles" type="file" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime" multiple></div>
+<div class="row"><button class="primary" id="addMedia">Upload &amp; add media</button><button id="chooseMediaTarget">Use selected item</button></div>
+<p id="mediaProgress" class="hint" aria-live="polite">Images up to 10 MB; videos up to 100 MB. MP4 and WebM recommended.</p></div>
+<div class="sec"><h2>Media in selected location</h2><div id="mediaList" class="media-list"><p class="hint">Select a section or portfolio item to manage its media.</p></div></div>
+</div>
+<div id="tab-theme" class="hidden"><div class="sec"><h2>Brand, colors & fonts</h2><p class="hint">Overrides the website's current theme without rebuilding it.</p><div class="field"><label>Crimson / primary accent</label><input type="color" id="themeRed" value="#D6001C"></div><div class="field"><label>Paper background</label><input type="color" id="themePaper" value="#EDE7D9"></div><div class="field"><label>Text / charcoal</label><input type="color" id="themeInk" value="#111111"></div><div class="field"><label>Display font</label><select id="fontDisplay"><option>Anton</option><option>Impact</option><option>Arial</option><option>Georgia</option><option>Inter</option></select></div><div class="field"><label>Body font</label><select id="fontBody"><option>Inter</option><option>Arial</option><option>Georgia</option><option>Libre Baskerville</option></select></div><button id="applyTheme" class="primary">Apply theme</button></div>
+<div class="sec"><h2>Header and footer</h2><p class="hint">Edit the actual logo text, tagline, and footer text by clicking them in the preview. These controls update social link URLs.</p><div class="field"><label>Brand wordmark text</label><input id="brandText" placeholder="MerQato Digital"></div><div class="field"><label>Brand subtitle</label><input id="brandSubtitle" placeholder="PALAWAN COLLECTIVE"></div><div class="field"><label>Logo image URL (optional)</label><input id="brandImage" placeholder="https://... or upload below"><input id="brandUpload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="margin-top:6px"></div><button id="applyBrand">Apply header & footer branding</button><div class="field"><label>GitHub URL</label><input id="socialGitHub" placeholder="https://github.com/..."></div><div class="field"><label>X URL</label><input id="socialX" placeholder="https://x.com/..."></div><div class="field"><label>LinkedIn URL</label><input id="socialLinkedIn" placeholder="https://linkedin.com/..."></div><button id="applySocial">Apply social links</button></div>
+<div class="sec"><h2>Custom CSS (advanced)</h2><p class="hint">For precise control of colors, fonts, spacing and any individual section.</p><textarea id="customCss" rows="6" placeholder="/* Add CSS overrides here */"></textarea><button id="applyCss">Apply custom CSS</button></div></div>
+</aside><div class="preview"><iframe id="siteFrame" title="Live website preview" src="/?edit=1"></iframe></div></div></div>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id),frame=$('siteFrame');let picked=null,dirty=false,customCss='',theme={red:'#D6001C',paper:'#EDE7D9',ink:'#111111',display:'Anton',body:'Inter'};
+ const show=(msg)=>{$('message').textContent=msg};const doc=()=>frame.contentDocument;const check=()=>fetch('/api/me').then(r=>r.json()).then(x=>x.authenticated);
+ const sync=()=>{dirty=true;show('Unsaved changes');renderSections()};
+ function css(){return `/* MQ-THEME */:root{--red:${theme.red};--red2:${theme.red};--paper:${theme.paper};--ink:${theme.ink};--display:'${theme.display}',sans-serif;--sans:'${theme.body}',sans-serif}\n/* MQ-CUSTOM */${customCss}`} 
+ function applyCss(){const d=doc();if(!d)return;let s=d.getElementById('mq-cms-style');if(!s){s=d.createElement('style');s.id='mq-cms-style';d.head.appendChild(s)}s.textContent=css()}
+ function hydrate(){const d=doc();if(!d)return;applyCss();d.addEventListener('click',e=>{
+  const el=e.target.closest('a,img,video,button,h1,h2,h3,h4,p,span,li,td,th,small,strong,em,.card,.project,.logo,svg');if(!el)return;
+  if(el.closest('a'))e.preventDefault();
+  if(el.closest('.hotspot')){choose(el.closest('a'));return}
+  if(el.closest('.mq-socials a')){choose(el.closest('a'));return}if(el.closest('.mq-media-gallery')){choose(el);return}
+  e.preventDefault();e.stopPropagation();choose(el)
+ },true);d.addEventListener('mouseover',()=>{},true);
+ renderSections();updateSocialFields();
+ }
+ function choose(el){const d=doc();if(picked)picked.style.removeProperty('outline');picked=el;picked.style.outline='2px dashed #D6001C';picked.style.outlineOffset='3px';$('fields').classList.remove('hidden');$('selectedHint').textContent=(el.tagName.toLowerCase())+' · '+(el.className?.baseVal||el.className||'').toString().slice(0,70);$('editText').value=el.matches('input')?el.value:(el.childElementCount===0?el.textContent:(el.matches('a')?el.textContent:el.textContent.slice(0,500)));let a=el.closest('a');$('urlField').classList.toggle('hidden',!a);$('editUrl').value=a?a.getAttribute('href')||'':'';const im=el.matches('img')?el:null;$('imageField').classList.toggle('hidden',!im);$('imageUrl').value=im?im.getAttribute('src')||'':'';$('imagePreview').src=im?im.src:'';}
+ function updateSelectedText(){if(!picked)return; if(picked.matches('svg'))return alert('Select a text or image element instead.');if(picked.childElementCount&&picked.matches('a')){
+  const svg=picked.querySelector('svg');if(svg){alert('This is an icon link. Edit its URL instead.');return}}
+  if(picked.childElementCount){const walker=doc().createTreeWalker(picked,NodeFilter.SHOW_TEXT);let first=walker.nextNode();if(first){first.textContent=$('editText').value;while((first=walker.nextNode()))first.textContent=''}else picked.appendChild(doc().createTextNode($('editText').value))}else picked.textContent=$('editText').value;sync()}
+ function setTab(tab){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));['edit','layout','theme','media'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab));if(tab==='layout')renderSections();if(tab==='media'){refreshMediaTargets();renderMediaList()}}
+ function sections(){return [...doc().querySelectorAll('main > section,main > header,main > div.section,main > div.closing')].filter(x=>x.closest('main')===x.parentElement)}
+ function renderSections(){if(!doc())return;const list=$('sectionList');list.innerHTML='';sections().forEach((s,i)=>{const item=document.createElement('div');item.className='section-item';const label=document.createElement('span');label.className='section-name';label.textContent=(s.id||'section '+(i+1))+' — '+(s.querySelector('h2,h1')?.textContent||'').trim().slice(0,32);const tools=document.createElement('span');tools.className='tools';[['↑',()=>{const prev=sections()[i-1];if(prev)s.parentNode.insertBefore(s,prev);sync()}],['↓',()=>{const next=sections()[i+1];if(next)s.parentNode.insertBefore(next,s);sync()}],['Edit',()=>{s.scrollIntoView({behavior:'smooth',block:'start'});setTab('edit');choose(s.querySelector('h2,h1')||s)}],['×',()=>{if(confirm('Delete this section?')){s.remove();sync()}}]].forEach(([t,fn])=>{const b=document.createElement('button');b.textContent=t;b.type='button';b.onclick=fn;tools.appendChild(b)});item.append(label,tools);list.appendChild(item)})}
+ function addSection(){let title=$('newSectionTitle').value.trim()||'New section';let type=$('newSectionType').value;let d=doc(),main=d.querySelector('main'),s=d.createElement('section');s.className='section'+(type==='dark'?' dark':'');s.id='custom-'+Math.random().toString(36).slice(2,9);s.innerHTML=`<div class="wrap"><div class="kicker"><span class="num">+</span> New section</div><h2 class="display h2"></h2><p class="intro2">Add your description here.</p>${type==='cards'?'<div class="cards3"><div class="card"><h3>First card</h3><p>Edit this description.</p></div><div class="card"><h3>Second card</h3><p>Edit this description.</p></div><div class="card"><h3>Third card</h3><p>Edit this description.</p></div></div>':''}</div>`;s.querySelector('h2').textContent=title;const closing=main.querySelector('.closing');main.insertBefore(s,closing||null);sync();s.scrollIntoView({behavior:'smooth'});setTab('edit');choose(s.querySelector('h2'))}
+ async function uploadFile(file){const res=await fetch('/api/upload',{method:'POST',headers:{'content-type':file.type,'x-file-name':encodeURIComponent(file.name)},body:file});const val=await res.json();if(!res.ok)throw Error(val.error||'Upload failed');return val.url}
+ function collect(){const d=doc();if(picked){picked.style.removeProperty('outline');picked=null}const main=d.querySelector('main'),nav=d.querySelector('nav');let mainCopy=main.cloneNode(true);mainCopy.querySelectorAll('[contenteditable],.mq-editor-highlight').forEach(e=>{e.removeAttribute('contenteditable');e.classList.remove('mq-editor-highlight')});return {main:mainCopy.outerHTML,nav:nav.outerHTML,css:css()}}
+ async function save(){try{const r=await fetch('/api/site',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(collect())});const data=await r.json();if(!r.ok)throw Error(data.error);dirty=false;show('Published successfully');}catch(e){show('Save failed');alert(e.message)}}
+ function updateSocialFields(){const d=doc();$('brandText').value=d.querySelector('.nav .mq-name')?.textContent||'MerQato Digital';$('brandSubtitle').value=d.querySelector('.nav .brand-sub')?.textContent||'PALAWAN COLLECTIVE';$('brandImage').value=d.querySelector('.nav .mq-logo-image')?.getAttribute('src')||'';for(const [id,key] of [['socialGitHub','github'],['socialX','x'],['socialLinkedIn','linkedin']]){$(id).value=d.querySelector(`[data-social="${key}"]`)?.getAttribute('href')||''}}
+ async function init(){const ok=await check();$('login').classList.toggle('hidden',ok);$('app').classList.toggle('hidden',!ok);if(ok){try{const r=await fetch('/api/site');const state=await r.json();if(state.css){let cssText=state.css;const r=(k)=>new RegExp('--'+k+':([^;}]+)').exec(cssText)?.[1]?.trim();theme.red=r('red')||theme.red;theme.paper=r('paper')||theme.paper;theme.ink=r('ink')||theme.ink;theme.display=/--display:'([^']+)'/.exec(cssText)?.[1]||theme.display;theme.body=/--sans:'([^']+)'/.exec(cssText)?.[1]||theme.body;customCss=cssText.includes('/* MQ-CUSTOM */')?cssText.split('/* MQ-CUSTOM */')[1]:'';$('customCss').value=customCss;$('themeRed').value=theme.red;$('themePaper').value=theme.paper;$('themeInk').value=theme.ink;$('fontDisplay').value=theme.display;$('fontBody').value=theme.body}}catch(e){console.warn(e)}if(frame.contentDocument?.readyState==='complete')hydrate()}}
+ $('loginForm').onsubmit=async e=>{e.preventDefault();let r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('password').value})});if(r.ok){$('password').value='';init()}else $('loginErr').textContent='Incorrect password'};
+ $('logout').onclick=async()=>{await fetch('/api/logout',{method:'POST'});location.reload()};$('save').onclick=save;$('refresh').onclick=()=>{if(dirty&&!confirm('Discard unsaved changes?'))return;frame.contentWindow.location.reload();dirty=false;show('Reloaded')};frame.addEventListener('load',()=>{if(!$('app').classList.contains('hidden'))hydrate()});
+ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));$('applyText').onclick=updateSelectedText;$('applyUrl').onclick=()=>{const a=picked?.closest('a');if(!a)return;const v=$('editUrl').value.trim();if(!/^(https?:\/\/|mailto:|#|\/)/.test(v))return alert('Use an HTTPS URL, mailto link, or section anchor');a.setAttribute('href',v);sync()};
+ $('applyImage').onclick=()=>{if(!picked?.matches('img'))return;picked.src=$('imageUrl').value.trim();sync()};$('imageUpload').onchange=async e=>{const file=e.target.files[0];if(!file||!picked?.matches('img'))return;try{const url=await uploadFile(file);picked.src=url;$('imageUrl').value=url;$('imagePreview').src=url;sync()}catch(err){alert(err.message)}};
+ $('applyBold').onclick=()=>{if(picked){picked.style.fontWeight='800';sync()}};$('applyItalic').onclick=()=>{if(picked){picked.style.fontStyle='italic';sync()}};$('clearInline').onclick=()=>{if(picked){picked.removeAttribute('style');sync()}};$('removeSelected').onclick=()=>{if(!picked)return;const removable=picked.closest('.mq-media-item,.card,.project,.project-card,.mq-socials a');if(!removable)return alert('Select a portfolio card or social icon to remove it. For entire sections use the Sections tab.');if(confirm('Delete selected item?')){removable.remove();picked=null;$('fields').classList.add('hidden');sync()}};
+ $('addSection').onclick=addSection;$('headSelect').onclick=()=>{setTab('edit');choose(doc().querySelector('.nav .mq-name')||doc().querySelector('.nav .logo'));doc().querySelector('.nav')?.scrollIntoView()};$('footSelect').onclick=()=>{setTab('edit');choose(doc().querySelector('.footer .mq-name')||doc().querySelector('.footer'));doc().querySelector('.footer')?.scrollIntoView()};$('portfolioSelect').onclick=()=>{doc().getElementById('work')?.scrollIntoView({behavior:'smooth'});setTab('edit')};
+ $('addProject').onclick=()=>{const d=doc(),s=d.getElementById('work'),grid=s?.querySelector('.cards3,.project-grid');if(!grid)return alert('Portfolio layout not found');const el=d.createElement('div');el.className='card';el.innerHTML='<span class="tag">New project</span><h3>New project name</h3><p>Description of the project, what it does and its business value.</p><p style="margin-top:15px"><a href="https://example.com" target="_blank" rel="noopener noreferrer">View project ↗</a></p>';grid.appendChild(el);sync();el.scrollIntoView({behavior:'smooth'});setTab('edit')};
+ $('applyTheme').onclick=()=>{theme={red:$('themeRed').value,paper:$('themePaper').value,ink:$('themeInk').value,display:$('fontDisplay').value,body:$('fontBody').value};applyCss();sync()};$('applyCss').onclick=()=>{customCss=$('customCss').value;applyCss();sync()};$('applyBrand').onclick=()=>{const d=doc(),name=$('brandText').value.trim()||'MerQato Digital',tag=$('brandSubtitle').value.trim(),img=$('brandImage').value.trim();d.querySelectorAll('.mq-wordmark').forEach(w=>{const label=d.createElement('span');label.className='mq-name';const idx=name.indexOf('Q');if(idx>=0){label.appendChild(d.createTextNode(name.slice(0,idx)));const q=d.createElement('span');q.className='mq-q';q.textContent='Q';label.appendChild(q);label.appendChild(d.createTextNode(name.slice(idx+1)))}else label.textContent=name;const sub=d.createElement('span');sub.className='brand-sub';sub.textContent=tag;w.replaceChildren(...(img?[Object.assign(d.createElement('img'),{src:img,alt:name,className:'mq-logo-image'})]:[]),label,sub)});sync()};$('brandUpload').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{$('brandImage').value=await uploadFile(file);$('applyBrand').click()}catch(err){alert(err.message)}};
+ $('applySocial').onclick=()=>{for(const [id,key] of [['socialGitHub','github'],['socialX','x'],['socialLinkedIn','linkedin']]){const a=doc().querySelector(`[data-social="${key}"]`),v=$(id).value.trim();if(a&&/^https:\/\//.test(v))a.setAttribute('href',v)}sync()};
+ 
+ // Media manager: multiple images/videos can be attached to every existing section or portfolio card.
+ let mediaTargetEl=null;
+ const mediaContainers=()=>{
+  const d=doc();if(!d)return [];
+  const results=[];
+  const navigation=d.querySelector('nav');if(navigation)results.push({el:navigation,label:'HEADER · Navigation & branding'});
+  [...d.querySelectorAll('main > section, main > header')].forEach((s,i)=>{
+   const label=s.querySelector('h1,h2')?.textContent?.trim().replace(/\s+/g,' ').slice(0,56)||`Section ${i+1}`;
+   if(!s.id)s.id='mq-section-'+i;
+   results.push({el:s,label:'SECTION · '+label});
+   s.querySelectorAll('.card,.project,.project-card').forEach((c,j)=>{
+    if(!c.dataset.mqMediaId)c.dataset.mqMediaId='card-'+cryptoId();
+    const n=c.querySelector('h3,.project-name,h4')?.textContent?.trim().replace(/\s+/g,' ').slice(0,45)||`Card ${j+1}`;
+    results.push({el:c,label:'PORTFOLIO / CARD · '+n});
+   });
+  });
+  return results;
+ };
+ const cryptoId=()=>Math.random().toString(36).slice(2,10);
+ const destinationLabel=el=>el?.querySelector('h3,h2,h1,.project-name')?.textContent?.trim().replace(/\s+/g,' ').slice(0,45)||el?.id||'Selected location';
+ function galleryFor(el,create=false){
+  if(!el)return null;
+  let gal=[...el.children].find(x=>x.matches('.mq-media-gallery'));
+  if(!gal&&create){gal=doc().createElement('div');gal.className='mq-media-gallery';gal.setAttribute('data-mq-managed','media');
+   gal.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:24px 0;width:100%;';
+   if(el.matches('section,header,nav')){(el.querySelector('.wrap,.container')||el).appendChild(gal)}else el.appendChild(gal);
+  }
+  if(el.matches('section,header,nav')&& !gal){gal=el.querySelector('.wrap > .mq-media-gallery,.container > .mq-media-gallery')}
+  return gal;
+ }
+ function selectedMediaParent(){
+  if(!picked)return null;
+  return picked.closest('.card,.project,.project-card')||picked.closest('main > section,main > header,nav');
+ }
+ function selectMediaTarget(el){mediaTargetEl=el;refreshMediaTargets();renderMediaList()}
+ function refreshMediaTargets(){
+  const arr=mediaContainers(),select=$('mediaTarget');if(!select)return;
+  if(!arr.includes(mediaTargetEl)){} // element identity is retained across edits
+  if(!mediaTargetEl||!arr.some(x=>x.el===mediaTargetEl))mediaTargetEl=arr[0]?.el||null;
+  select.innerHTML='';arr.forEach((x,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=x.label;select.appendChild(option)});
+  select.value=String(Math.max(0,arr.findIndex(x=>x.el===mediaTargetEl)));
+ }
+ function mediaOf(){return [...(galleryFor(mediaTargetEl)?.children||[])].filter(e=>e.matches('figure.mq-media-item'))}
+ function setMediaAttributes(el,type,url,alt=''){const media=doc().createElement(type==='video'?'video':'img');media.src=url;
+  media.style.cssText='display:block;width:100%;max-height:360px;object-fit:cover;border-radius:4px;background:#181818';
+  if(type==='video'){media.controls=true;media.preload='metadata';media.playsInline=true;media.style.aspectRatio='16 / 9'}
+  else{media.alt=alt;media.loading='lazy'}
+  el.replaceChildren(media);return media;
+ }
+ function addToGallery(type,url,alt=''){
+  const gal=galleryFor(mediaTargetEl,true);if(!gal)throw Error('Select a destination');
+  const figure=doc().createElement('figure');figure.className='mq-media-item';figure.style.cssText='margin:0;min-width:0;position:relative';
+  setMediaAttributes(figure,type,url,alt);
+  gal.appendChild(figure);sync();return figure;
+ }
+ function renderMediaList(){
+  const list=$('mediaList');if(!list)return;
+  list.replaceChildren();let items=mediaOf();if(!items.length){let p=document.createElement('p');p.className='hint';p.textContent='No media yet. Upload multiple images or videos above.';list.appendChild(p);return}
+  items.forEach((figure,i)=>{
+   const m=figure.querySelector('img,video');if(!m)return;
+   const row=document.createElement('div');row.className='media-row';
+   const thumb=m.cloneNode(false);if(thumb.tagName==='VIDEO'){thumb.controls=false;thumb.muted=true;thumb.preload='metadata'}
+   row.appendChild(thumb);const body=document.createElement('div');const detail=document.createElement('small');detail.textContent=(m.tagName==='VIDEO'?'Video':'Image')+' '+(i+1);body.appendChild(detail);
+   const alt=document.createElement('input');alt.placeholder=m.tagName==='IMG'?'Image description (alt text)':'Video description';alt.value=m.tagName==='IMG'?m.alt:(m.getAttribute('aria-label')||'');
+   alt.oninput=()=>{if(m.tagName==='IMG')m.alt=alt.value;else m.setAttribute('aria-label',alt.value);sync()};body.appendChild(alt);
+   const btnrow=document.createElement('div');btnrow.className='row';
+   const replace=document.createElement('button');replace.textContent='Replace';replace.onclick=()=>{
+    let picker=document.createElement('input');picker.type='file';picker.accept='image/*,video/mp4,video/webm,video/quicktime';picker.onchange=async()=>{
+     const file=picker.files[0];if(!file)return;
+     try{const url=await uploadFile(file);setMediaAttributes(figure,file.type.startsWith('video/')?'video':'image',url,alt.value);sync();renderMediaList()}catch(e){alert(e.message)}
+    };picker.click();
+   };
+   const before=document.createElement('button');before.textContent='↑';before.setAttribute('aria-label','Move earlier');before.disabled=i===0;before.onclick=()=>{figure.previousElementSibling?.before(figure);sync();renderMediaList()};
+   const after=document.createElement('button');after.textContent='↓';after.setAttribute('aria-label','Move later');after.disabled=i===items.length-1;after.onclick=()=>{figure.nextElementSibling?.after(figure);sync();renderMediaList()};
+   const del=document.createElement('button');del.textContent='Delete';del.className='danger';del.onclick=()=>{if(confirm('Remove this media from the page?')){figure.remove();sync();renderMediaList()}};
+   btnrow.append(replace,before,after,del);body.appendChild(btnrow);row.appendChild(body);list.appendChild(row);
+  });
+ }
+ function setupMedia(){
+  $('mediaTarget').onchange=e=>{mediaTargetEl=mediaContainers()[Number(e.target.value)]?.el||null;renderMediaList()};
+  $('chooseMediaTarget').onclick=()=>{const el=selectedMediaParent();if(!el)return alert('Select a section or portfolio card in the website preview first');selectMediaTarget(el)};
+  $('openMedia').onclick=()=>{setTab('media');const el=selectedMediaParent();if(el)selectMediaTarget(el)};
+  $('addMedia').onclick=async()=>{
+   const files=Array.from($('mediaFiles').files||[]);if(!files.length)return alert('Choose files from your device');
+   if(!mediaTargetEl)refreshMediaTargets();
+   const btn=$('addMedia');btn.disabled=true;let completed=0;
+   try{for(const file of files){$('mediaProgress').textContent='Uploading '+(completed+1)+' of '+files.length+' · '+file.name;
+     if(!/^image\/(png|jpeg|webp|gif)$|^video\/(mp4|webm|quicktime)$/.test(file.type))throw Error('Unsupported file: '+file.name);
+     const url=await uploadFile(file);addToGallery(file.type.startsWith('video/')?'video':'image',url,file.name);completed++;
+   }
+    $('mediaFiles').value='';$('mediaProgress').textContent=completed+' uploaded. Click Save & Publish to make the changes permanent.';
+   }catch(err){$('mediaProgress').textContent='Uploaded '+completed+' files; '+err.message;alert(err.message)}finally{btn.disabled=false;renderMediaList()}
+  };
+ }
+ setupMedia();
+
+ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});init();
+})();
+</script></body></html>
