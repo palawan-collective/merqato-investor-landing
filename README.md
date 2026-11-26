@@ -8,7 +8,7 @@ The **Media library** admin tab accepts multiple files from your device and lets
 
 ## Partner workspace
 
-Open `/workspace` (linked from the site editor toolbar). It is a private area for David and Lawrence — nothing in it is public, and no domain or public deploy is configured yet.
+Open `/admin` — it redirects to the partner workstation at `/workspace`; the public-site editor is now secondary at `/admin/edit`. Data lives in gitignored `data/workspace.json` and `data/workspace.salt`.
 
 - **Projects:** each project gets its own page at `/p/<slug>`, with headline, description, cover image, tags, status and internal notes. Editing a project updates that page.
 - **Ideas, comments and files:** idea board with statuses, threaded-by-scope comments with image/URL attachments, and a file library for brand guidelines, logos and reference files (PDF, DOCX, ZIP, TXT, CSV, images and video).

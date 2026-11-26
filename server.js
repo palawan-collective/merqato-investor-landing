@@ -115,9 +115,10 @@ if(pathname==='/api/workspace/link/reveal'&&req.method==='POST'){
  if(!l)return send(res,404,{error:'Link not found'});
  return send(res,200,{password:WS.decrypt(l.secret)});
 }
-if(pathname==='/workspace'||pathname==='/workspace/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','workspace.html')))}
+if(pathname==='/workspace'||pathname==='/workspace/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','workstation.html')))}
 if(pathname.startsWith('/p/')){const slug=pathname.slice(3).replace(/[^a-z0-9-]/gi,'').toLowerCase();const html=WS.renderProject(slug);if(!html)return send(res,404,{error:'Project not found'});res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(html)}
-if(pathname==='/admin'||pathname==='/admin/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','admin.html')))}
+if(pathname==='/admin'||pathname==='/admin/'){res.writeHead(302,{location:'/workspace','cache-control':'no-store'});return res.end()}
+if(pathname==='/admin/edit'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','admin.html')))}
 if(pathname==='/'||pathname==='/index.html'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(render())}
 return send(res,404,{error:'Not found'});
 }catch(err){console.error(err);if(!res.headersSent)send(res,500,{error:'Request failed'})}
