@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>MerQato · Partner workstation</title>
+<style>
+:root{--ws-red:#D6001C;--ws-ink:#151515;--ws-sub:#6b665f;--ws-line:#e2ded7;--ws-bg:#f4f1eb;--ws-card:#fff;--ws-soft:#f9f7f3}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--ws-bg);color:var(--ws-ink);font:14px/1.55 Inter,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.hidden{display:none!important}button,a{outline-offset:2px}
+.ws-login{min-height:100vh;display:grid;place-items:center;padding:24px;background:#111}
+.ws-login-card{width:min(100%,400px);background:#fff;border-radius:14px;padding:34px;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.ws-login-card h1{margin:0 0 8px;font-size:26px;letter-spacing:-.04em}
+.ws-login-card p{color:var(--ws-sub);margin:0 0 22px}
+.ws-login-card .ws-field{margin-bottom:16px}
+.ws-login-err{color:#b00020;font-size:13px;min-height:18px}
+.ws-app{display:grid;grid-template-columns:246px minmax(0,1fr);min-height:100vh}
+.ws-side{background:#111;color:#f5f0e7;padding:24px 16px 18px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.ws-brand{font-size:25px;font-weight:900;letter-spacing:-.06em;line-height:1}
+.ws-brand b{color:var(--ws-red)}.ws-brand small{display:block;font-size:9px;font-weight:800;letter-spacing:.24em;color:#bdb6ab;margin-top:8px}
+.ws-person{display:flex;gap:10px;align-items:center;border:1px solid #3b3834;border-radius:10px;padding:10px;min-width:0}
+.ws-avatar{width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:var(--ws-red);display:grid;place-items:center;font-size:12px;font-weight:900}
+.ws-person strong,.ws-person small{display:block;overflow-wrap:anywhere}.ws-person small{color:#aaa49b;font-size:11px}
+.ws-nav{display:flex;flex-direction:column;gap:3px}
+.ws-navitem{appearance:none;width:100%;text-align:left;border:0;background:transparent;color:#cfc9bf;padding:9px 11px;border-radius:7px;font-size:13px;font-weight:650;display:flex;justify-content:space-between;gap:8px;text-decoration:none}
+.ws-navitem:hover{background:#222;color:#fff}.ws-navitem.active{background:var(--ws-red);color:#fff}
+.ws-navitem .ws-count{font-size:10px;opacity:.75}
+.ws-navsep{font-size:9px;letter-spacing:.2em;color:#7f796f;font-weight:850;margin:16px 11px 4px}
+.ws-sidefoot{margin-top:auto;border-top:1px solid #333;padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.ws-sidefoot button{border:1px solid #444;background:transparent;color:#ddd;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;text-align:left}
+.ws-sidefoot small{color:#8e887f;font-size:11px}
+.ws-main{min-width:0;display:flex;flex-direction:column}
+.ws-top{padding:28px 34px 20px;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--ws-line);background:#fff}
+.ws-eyebrow{font-size:10px;font-weight:850;letter-spacing:.22em;color:var(--ws-red);text-transform:uppercase}
+.ws-top h1{font-size:clamp(26px,3vw,38px);letter-spacing:-.05em;line-height:1.1;margin:6px 0 4px}
+.ws-top p{margin:0;color:var(--ws-sub);font-size:13px}
+.ws-topactions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.ws-search{min-width:220px;width:min(320px,60vw);border:1px solid var(--ws-line);border-radius:8px;padding:10px 12px;background:var(--ws-soft)}
+.ws-content{padding:26px 34px 70px;max-width:1500px;width:100%}
+.ws-view{display:none}.ws-view.active{display:block;animation:wsIn .22s ease}
+@keyframes wsIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.ws-view.active{animation:none}*{transition:none!important}}
+.ws-btn{border:1px solid var(--ws-line);background:#fff;color:var(--ws-ink);border-radius:7px;padding:9px 13px;font-size:13px;font-weight:750;transition:transform .15s,border-color .15s,background .15s;text-decoration:none;display:inline-block}
+.ws-btn:hover{border-color:var(--ws-ink);transform:translateY(-1px)}
+.ws-btn.primary{background:var(--ws-red);border-color:var(--ws-red);color:#fff}
+.ws-btn.small{padding:5px 9px;font-size:11px;border-radius:5px}
+.ws-btn.ghost{background:transparent}.ws-btn.danger{color:#a00017;border-color:#e8b9be}
+.ws-btn.dark{background:#151515;border-color:#151515;color:#fff}
+.ws-btn.dark:hover{background:#000;border-color:#000}
+.ws-card{background:var(--ws-card);border:1px solid var(--ws-line);border-radius:12px;padding:19px;min-width:0}
+.ws-card h2{font-size:16px;margin:0 0 14px;letter-spacing:-.02em}
+.ws-card h3{font-size:14px;margin:0 0 6px;overflow-wrap:anywhere}
+.ws-two{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.85fr);gap:16px;align-items:stretch}
+.ws-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.ws-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ws-between{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.ws-muted{color:var(--ws-sub);font-size:12px}
+.ws-empty{color:var(--ws-sub);font-size:13px;padding:18px 0;text-align:center;border:1px dashed var(--ws-line);border-radius:9px}
+.ws-hr{border:0;border-top:1px solid var(--ws-line);margin:16px 0}
+.ws-field{margin-bottom:13px}.ws-field label{display:block;font-size:11px;font-weight:850;letter-spacing:.03em;margin-bottom:5px;color:#3d3933}
+.ws-field input,.ws-field textarea,.ws-field select{width:100%;border:1px solid #d3cec6;border-radius:7px;padding:9px 10px;background:#fff;color:#111;min-width:0}
+.ws-field textarea{min-height:88px;resize:vertical}
+.ws-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ws-pill{display:inline-flex;align-items:center;font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase;border-radius:99px;padding:4px 9px;border:1px solid currentColor}
+.ws-pill.red{color:#fff;background:var(--ws-red);border-color:var(--ws-red)}
+.ws-pill.green{color:#fff;background:#177a4f;border-color:#177a4f}
+.ws-pill.grey{color:var(--ws-sub);background:#f1eee8;border-color:#d8d2c9}
+.ws-pill.blue{color:#fff;background:#1f5fa8;border-color:#1f5fa8}
+.ws-link{color:var(--ws-red);text-decoration:none;overflow-wrap:anywhere;word-break:break-word}
+.ws-link:hover{text-decoration:underline}
+.ws-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.ws-stat{background:#fff;border:1px solid var(--ws-line);border-radius:12px;padding:17px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.ws-stat:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,20,20,.07)}
+.ws-stat .ws-label{font-size:10px;font-weight:850;letter-spacing:.16em;color:var(--ws-sub);text-transform:uppercase}
+.ws-stat .ws-num{font-size:38px;font-weight:850;letter-spacing:-.06em;line-height:1.1;margin:6px 0 9px}
+.ws-bar{height:4px;background:#eee9e1;border-radius:4px;overflow:hidden}.ws-bar span{display:block;height:100%;background:var(--ws-red);border-radius:4px;transition:width .35s}
+.ws-proj{border:1px solid var(--ws-line);border-radius:10px;padding:14px;background:var(--ws-soft);margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.ws-proj:hover{border-color:var(--ws-red)}
+.ws-proj p{margin:6px 0 9px;color:#514c45;font-size:12px}
+.ws-feed{display:flex;flex-direction:column;gap:12px}
+.ws-feeditem{border-left:2px solid var(--ws-red);padding-left:11px}
+.ws-feeditem p{margin:3px 0;font-size:12px;overflow-wrap:anywhere}
+.ws-chiprow{display:flex;flex-wrap:wrap;gap:7px}
+.ws-chip{border:1px solid var(--ws-line);border-radius:99px;padding:7px 11px;font-size:12px;background:#fff;text-decoration:none;color:var(--ws-ink);max-width:100%;overflow-wrap:anywhere}
+.ws-chip:hover{border-color:var(--ws-red);color:var(--ws-red)}
+.ws-action{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid var(--ws-line);border-radius:9px;background:#fff;padding:11px 13px;margin-bottom:8px;font-weight:700}
+.ws-action:hover{border-color:var(--ws-ink)}
+.ws-step{font-size:10px;font-weight:900;color:var(--ws-red);letter-spacing:.08em;min-width:18px}
+.ws-empty button{margin-top:10px}
+.ws-list{display:flex;flex-direction:column;gap:9px}
+.ws-item{border:1px solid var(--ws-line);border-radius:9px;padding:12px;background:#fff;min-width:0;overflow-wrap:anywhere}
+.ws-item.sel{border-color:var(--ws-red);box-shadow:inset 3px 0 var(--ws-red)}
+.ws-item p{margin:5px 0;white-space:pre-wrap}
+.ws-thumb{width:100%;max-height:140px;object-fit:contain;background:#f2efe9;border-radius:7px;margin-bottom:9px;display:block}
+.ws-files{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:11px}
+.ws-file{border:1px solid var(--ws-line);border-radius:9px;padding:11px;background:#fff;min-width:0;overflow-wrap:anywhere}
+.ws-secret{font-family:ui-monospace,Consolas,monospace}
+.ws-notice{background:#fff8e8;border:1px solid #ead39b;border-radius:9px;padding:10px 12px;font-size:12px;margin-bottom:18px;color:#5b4a24}
+.ws-toast{position:fixed;right:22px;bottom:22px;background:#151515;color:#fff;padding:11px 15px;border-radius:8px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;z-index:50}
+.ws-toast.show{opacity:1;transform:none}
+.ws-stack{display:flex;flex-direction:column;gap:16px}
+@media(max-width:1100px){.ws-three{grid-template-columns:1fr 1fr}.ws-stats{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){
+ .ws-app{grid-template-columns:1fr}
+ .ws-side{position:static;height:auto;overflow:visible;padding:16px;gap:12px}
+ .ws-nav{flex-direction:row;overflow-x:visible;flex-wrap:wrap;padding-bottom:4px}
+ .ws-navitem{white-space:nowrap;width:auto;flex:0 1 auto}
+ .ws-navsep,.ws-person,.ws-sidefoot{display:none}
+ .ws-top{padding:18px}.ws-content{padding:18px}.ws-two{grid-template-columns:1fr}
+}
+@media(max-width:620px){.ws-pair,.ws-three{grid-template-columns:1fr}.ws-stats{grid-template-columns:1fr 1fr}.ws-topactions{width:100%}.ws-search{width:100%;min-width:0}}
+</style>
+</head>
+<body>
+
+<div id="wsLogin" class="ws-login hidden">
+  <div class="ws-login-card">
+    <div class="ws-brand" style="color:#111">MerQato <b>.</b></div>
+    <h1 style="margin-top:18px">Partner workstation</h1>
+    <p>Private area for David and Lawrence. Sign in to continue.</p>
+    <div class="ws-field"><label for="wsPass">Password</label><input id="wsPass" type="password" autocomplete="current-password"></div>
+    <div id="wsLoginErr" class="ws-login-err"></div>
+    <button class="ws-btn primary" id="wsLoginBtn" style="width:100%">Sign in</button>
+  </div>
+</div>
+
+<div id="wsApp" class="ws-app hidden">
+<aside class="ws-side">
+  <div class="ws-brand">MerQato <b>.</b><small>PARTNER WORKSTATION</small></div>
+  <div class="ws-person"><span class="ws-avatar">D·L</span><div><strong>David &amp; Lawrence</strong><small>MerQato Digital · Palawan</small></div></div>
+  <nav class="ws-nav" id="wsNav">
+    <button class="ws-navitem active" data-view="dashboard">Dashboard</button>
+    <button class="ws-navitem" data-view="projects">Projects <span class="ws-count" id="navProjects">0</span></button>
+    <button class="ws-navitem" data-view="ideas">Ideas <span class="ws-count" id="navIdeas">0</span></button>
+    <button class="ws-navitem" data-view="files">Files &amp; brand kit <span class="ws-count" id="navFiles">0</span></button>
+    <button class="ws-navitem" data-view="links">Quick links <span class="ws-count" id="navLinks">0</span></button>
+    <button class="ws-navitem" data-view="activity">Activity <span class="ws-count" id="navComments">0</span></button>
+    <div class="ws-navsep">SITE TOOLS</div>
+    <a class="ws-navitem" href="/admin/edit">Edit site ↗</a>
+    <a class="ws-navitem" href="/" target="_blank" rel="noopener">View proposal ↗</a>
+  </nav>
+  <div class="ws-sidefoot"><small>Private · no public deploy yet</small><button id="wsLogout">Log out</button><small id="wsSaved">All changes saved</small></div>
+</aside>
+
+<div class="ws-main">
+<header class="ws-top">
+  <div><div class="ws-eyebrow">PRIVATE · DAVID &amp; LAWRENCE</div><h1>Good day, David &amp; Lawrence</h1><p id="wsDate"></p></div>
+  <div class="ws-topactions"><input id="wsSearch" class="ws-search" placeholder="Search projects, links, ideas…" aria-label="Search workspace"><button class="ws-btn dark" id="wsSaveTop">Save changes</button></div>
+</header>
+
+<div class="ws-content">
+
+<section class="ws-view active" id="view-dashboard">
+  <div class="ws-stats">
+    <div class="ws-stat" data-goto="projects"><div class="ws-label">Active projects</div><div class="ws-num" id="stProjects">0</div><div class="ws-bar"><span id="barProjects" style="width:0%"></span></div></div>
+    <div class="ws-stat" data-goto="ideas"><div class="ws-label">Ideas</div><div class="ws-num" id="stIdeas">0</div><div class="ws-bar"><span id="barIdeas" style="width:0%"></span></div></div>
+    <div class="ws-stat" data-goto="files"><div class="ws-label">Files in kit</div><div class="ws-num" id="stFiles">0</div><div class="ws-bar"><span id="barFiles" style="width:0%"></span></div></div>
+    <div class="ws-stat" data-goto="links"><div class="ws-label">Quick links</div><div class="ws-num" id="stLinks">0</div><div class="ws-bar"><span id="barLinks" style="width:0%"></span></div></div>
+  </div>
+  <div class="ws-two">
+    <div class="ws-card">
+      <div class="ws-between"><h2>Working now</h2><button class="ws-btn small" data-goto="projects">+ Add project</button></div>
+      <div id="dashProjects" class="ws-list"></div>
+    </div>
+    <div class="ws-card"><div class="ws-between"><h2>Recent activity</h2><button class="ws-btn small" data-goto="activity">All notes</button></div><div id="dashActivity" class="ws-feed"></div></div>
+  </div>
+  <div class="ws-three" style="margin-top:16px">
+    <div class="ws-card"><h2>Next actions</h2><button class="ws-action" data-goto="projects"><span class="ws-step">01</span><span>Update a project page</span><span>→</span></button><button class="ws-action" data-goto="files"><span class="ws-step">02</span><span>Upload brand guidelines</span><span>→</span></button><button class="ws-action" data-goto="links"><span class="ws-step">03</span><span>Save a work link</span><span>→</span></button><button class="ws-action" data-goto="activity"><span class="ws-step">04</span><span>Leave a note for your partner</span><span>→</span></button></div>
+    <div class="ws-card"><h2>Ideas in the pipeline</h2><div id="dashIdeas" class="ws-list"></div></div>
+    <div class="ws-card"><div class="ws-between"><h2>Quick access</h2><button class="ws-btn small" data-goto="links">Manage</button></div><div id="dashLinks" class="ws-chiprow"></div></div>
+  </div>
+</section>
+
+<section class="ws-view" id="view-projects">
+<div class="ws-two">
+  <div class="ws-card"><h2 id="projectFormTitle">New project</h2>
+    <div class="ws-field"><label>Project name</label><input id="pName" placeholder="e.g. Azarraga Glass website"></div>
+    <div class="ws-pair"><div class="ws-field"><label>Client</label><input id="pClient" placeholder="Client or internal"></div><div class="ws-field"><label>Status</label><select id="pStatus"><option>In progress</option><option>Discovery</option><option>Design</option><option>Launched</option><option>On hold</option></select></div></div>
+    <div class="ws-field"><label>Headline (large text on its page)</label><input id="pHeadline"></div>
+    <div class="ws-field"><label>Short description</label><textarea id="pDescription"></textarea></div>
+    <div class="ws-field"><label>Internal notes</label><textarea id="pNotes"></textarea></div>
+    <div class="ws-field"><label>Tags (comma separated)</label><input id="pTags"></div>
+    <div class="ws-pair"><div class="ws-field"><label>Cover image</label><select id="pImage"></select></div><div class="ws-field"><label>Project URL</label><input id="pUrl" placeholder="https://…"></div></div>
+    <div class="ws-row"><button class="ws-btn primary" id="pSave">Save project</button><button class="ws-btn" id="pReset">Clear</button></div>
+  </div>
+  <div class="ws-card"><div class="ws-between"><h2>Projects</h2><span class="ws-muted" id="projectCount"></span></div><div id="projectList" class="ws-list"></div></div>
+</div>
+</section>
+
+<section class="ws-view" id="view-ideas">
+<div class="ws-two">
+  <div class="ws-card"><h2>New project idea</h2><div class="ws-field"><label>Title</label><input id="iTitle"></div><div class="ws-field"><label>What is it?</label><textarea id="iDesc"></textarea></div><button class="ws-btn primary" id="iAdd">Add idea</button></div>
+  <div class="ws-card"><h2>Idea board</h2><div id="ideaList" class="ws-list"></div></div>
+</div>
+</section>
+
+<section class="ws-view" id="view-files">
+<div class="ws-two">
+  <div class="ws-card"><h2>Upload a file</h2><p class="ws-muted">Images, PDF, Word, ZIP, TXT and CSV. Up to 25 MB (10 MB for images).</p>
+    <div class="ws-field"><input type="file" id="fInput" multiple></div>
+    <div class="ws-pair"><div class="ws-field"><label>Title</label><input id="fTitle" placeholder="Brand guidelines v2"></div><div class="ws-field"><label>Category</label><select id="fCategory"><option>Brand</option><option>Client</option><option>Reference</option><option>Contract</option><option>Other</option></select></div></div>
+    <div class="ws-field"><label>Paste an image URL instead</label><input id="fUrl" placeholder="https://… or /uploads/…"></div>
+    <button class="ws-btn primary" id="fAdd">Add to library</button>
+    <hr class="ws-hr"><h2>Brand kit</h2>
+    <div class="ws-field"><label>Brand name</label><input id="bName"></div><div class="ws-field"><label>Tagline</label><input id="bTagline"></div>
+    <div class="ws-pair"><div class="ws-field"><label>Primary</label><input type="color" id="bPrimary"></div><div class="ws-field"><label>Accent</label><input type="color" id="bAccent"></div></div>
+    <div class="ws-pair"><div class="ws-field"><label>Paper</label><input type="color" id="bPaper"></div><div class="ws-field"><label>Ink</label><input type="color" id="bInk"></div></div>
+    <div class="ws-pair"><div class="ws-field"><label>Display font</label><input id="bDisplay"></div><div class="ws-field"><label>Body font</label><input id="bBody"></div></div>
+    <div class="ws-field"><label>Logo</label><select id="bLogo"></select></div>
+    <div class="ws-field"><label>Guidelines and voice</label><textarea id="bGuidelines" style="min-height:140px"></textarea></div>
+    <div class="ws-row"><button class="ws-btn" id="bReset">Reset form</button><button class="ws-btn primary" id="saveBrand">Save brand kit</button></div>
+  </div>
+  <div class="ws-card"><div class="ws-between"><h2>File library</h2><span class="ws-muted" id="fileCount"></span></div><div class="ws-chiprow" id="brandPreview" style="margin-bottom:14px"></div><div id="fileList" class="ws-files"></div></div>
+</div>
+</section>
+
+<section class="ws-view" id="view-links">
+<div class="ws-two">
+  <div class="ws-card"><h2>Add a quick link</h2>
+    <div class="ws-field"><label>Label</label><input id="lTitle"></div><div class="ws-field"><label>URL</label><input id="lUrl" placeholder="https://…"></div>
+    <div class="ws-pair"><div class="ws-field"><label>Category</label><select id="lCategory"><option>Client work</option><option>Infrastructure</option><option>Design</option><option>Finance</option><option>Other</option></select></div><div class="ws-field"><label>Username / email</label><input id="lUser"></div></div>
+    <div class="ws-field"><label>Password (encrypted, never listed)</label><input type="password" id="lPass" autocomplete="new-password"></div>
+    <div class="ws-field"><label>Notes</label><textarea id="lNotes"></textarea></div><button class="ws-btn primary" id="lAdd">Save link</button>
+  </div>
+  <div class="ws-card"><div class="ws-between"><h2>Saved links</h2><span class="ws-muted" id="linkCount"></span></div><div id="linkList" class="ws-list"></div></div>
+</div>
+</section>
+
+<section class="ws-view" id="view-activity">
+<div class="ws-two">
+  <div class="ws-card"><h2>Leave a comment</h2>
+    <div class="ws-pair"><div class="ws-field"><label>From</label><select id="cAuthor"><option>David</option><option>Lawrence</option></select></div><div class="ws-field"><label>About</label><select id="cScope"></select></div></div>
+    <div class="ws-field"><label>Comment</label><textarea id="cText"></textarea></div>
+    <div class="ws-pair"><div class="ws-field"><label>Attach an image</label><select id="cImage"></select></div><div class="ws-field"><label>Or a URL</label><input id="cUrl" placeholder="https://…"></div></div>
+    <button class="ws-btn primary" id="cAdd">Post comment</button>
+  </div>
+  <div class="ws-card"><h2>Activity</h2><div id="commentList" class="ws-list"></div></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+
+<div id="wsToast" class="ws-toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let toastTimer;
+const toast = msg => { const t=$('wsToast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600); };
+const http = async (url, opts={}) => { const r=await fetch(url,opts); let d={}; try{d=await r.json()}catch{} if(!r.ok) throw new Error(d.error||'Request failed'); return d; };
+let S={brand:{},projects:[],ideas:[],files:[],links:[],comments:[]}, dirty=false, editingProject=null, editingLink=null;
+const markDirty=()=>{dirty=true;$('wsSaved').textContent='Unsaved changes'};
+const setSaved=t=>{$('wsSaved').textContent=t;toast(t)};
+const slugify=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'project';
+const date=s=>{try{return new Date(s).toLocaleString()}catch{return ''}};
+const searchTerm=()=>($('wsSearch').value||'').trim().toLowerCase();
+const matches=q=>String(q||'').toLowerCase().includes(searchTerm());
+const statusPill=s=>`<span class="ws-pill ${s==='Launched'?'green':s==='On hold'?'grey':'red'}">${esc(s||'In progress')}</span>`;
+function go(view){
+  document.querySelectorAll('#wsNav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  document.querySelectorAll('.ws-view').forEach(v=>v.classList.toggle('active',v.id==='view-'+view));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.goto)));
+$('wsSaveTop').onclick=()=>save(true);
+$('wsLogout').onclick=async()=>{await http('/api/logout',{method:'POST'});location.reload()};
+async function boot(){
+  try{
+    const me=await http('/api/me');
+    if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');return}
+    $('wsLogin').classList.add('hidden');$('wsApp').classList.remove('hidden');
+    await load();
+  }catch(e){$('wsApp').classList.remove('hidden');$('wsSaved').textContent=e.message}
+}
+$('wsLoginBtn').onclick=async()=>{
+  $('wsLoginErr').textContent='';
+  try{await http('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('wsPass').value})});$('wsPass').value='';await boot()}
+  catch(e){$('wsLoginErr').textContent=e.message}
+};
+$('wsPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('wsLoginBtn').click()});
+async function load(){
+  try{S=await http('/api/workspace');dirty=false;$('wsSaved').textContent='All changes saved';renderAll()}
+  catch(e){$('wsSaved').textContent=e.message}
+}
+async function save(notify){
+  try{
+    await http('/api/workspace',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(S)});
+    S.links.forEach(l=>{if(l.password){l.keepSecret=true;delete l.password}});
+    dirty=false;if(notify)setSaved('Saved '+new Date().toLocaleTimeString());else $('wsSaved').textContent='All changes saved';
+  }catch(e){$('wsSaved').textContent=e.message;toast(e.message)}
+}
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+function optionsFrom(list,selected,placeholder){return `<option value="">${placeholder}</option>`+list.map(x=>`<option value="${esc(x.url)}"${x.url===selected?' selected':''}>${esc(x.title||x.name||x.url)}</option>`).join('')}
+function refreshSelects(){
+  const imgs=S.files.filter(f=>/^image\//.test(f.type||'')||/\.(png|jpe?g|webp|gif)$/i.test(f.url||''));
+  $('pImage').innerHTML=optionsFrom(imgs,$('pImage').value,'No image');
+  $('bLogo').innerHTML=optionsFrom(imgs,S.brand.logo,'No logo');
+  $('cImage').innerHTML=optionsFrom(imgs,'','None');
+  const scope=$('cScope'),cur=scope.value;
+  scope.innerHTML='<option value="general">General</option>'+S.projects.map(p=>`<option value="project:${esc(p.id)}">Project: ${esc(p.name)}</option>`).join('')+S.ideas.map(i=>`<option value="idea:${esc(i.id)}">Idea: ${esc(i.title)}</option>`).join('');
+  if(cur)scope.value=cur;
+}
+function renderDashboard(){
+  const active=S.projects.filter(p=>p.status!=='Launched'&&p.status!=='On hold');
+  $('stProjects').textContent=active.length;$('stIdeas').textContent=S.ideas.length;$('stFiles').textContent=S.files.length;$('stLinks').textContent=S.links.length;
+  $('navProjects').textContent=S.projects.length;$('navIdeas').textContent=S.ideas.length;$('navFiles').textContent=S.files.length;
+  $('navLinks').textContent=S.links.length;$('navComments').textContent=S.comments.length;
+  [['barProjects',active.length],['barIdeas',S.ideas.length],['barFiles',S.files.length],['barLinks',S.links.length]].forEach(([id,n])=>$(id).style.width=Math.min(100,n*12)+'%');
+  $('dashProjects').innerHTML=active.filter(p=>matches(p.name+' '+p.client+' '+(p.tags||[]).join(' '))).slice(0,5).map(p=>`<div class="ws-proj" data-editproject="${esc(p.id)}" role="button" tabindex="0"><div class="ws-between"><h3>${esc(p.name)}</h3>${statusPill(p.status)}</div><div class="ws-muted">${esc(p.client||'MerQato Digital')} · /p/${esc(p.slug)}</div><p>${esc((p.description||'').slice(0,150))}</p><div class="ws-row"><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button></div></div>`).join('')||'<div class="ws-empty">No active projects yet.<br><button class="ws-btn small" data-goto="projects">Add the first project</button></div>';
+  $('dashActivity').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).slice(0,5).map(c=>`<div class="ws-feeditem"><div class="ws-muted">${esc(c.author||'Partner')} · ${date(c.created)}</div><p>${esc(c.text)}</p></div>`).join('')||'<div class="ws-empty">No notes yet.<br><button class="ws-btn small" data-goto="activity">Leave the first note</button></div>';
+  $('dashLinks').innerHTML=S.links.filter(l=>matches(l.title+' '+l.url)).slice(0,8).map(l=>`<a class="ws-chip" href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(l.url)}">${esc(l.title)} ↗</a>`).join('')||'<div class="ws-empty">No saved links yet.<br><button class="ws-btn small" data-goto="links">Add a quick link</button></div>';
+  $('dashIdeas').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).slice(0,4).map(i=>`<div class="ws-item"><div class="ws-between"><h3>${esc(i.title)}</h3><span class="ws-pill blue">${esc(i.status||'New')}</span></div></div>`).join('')||'<div class="ws-empty">No ideas yet.<br><button class="ws-btn small" data-goto="ideas">Capture the first idea</button></div>';
+  $('wsDate').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+function renderProjects(){
+  const list=S.projects.filter(p=>matches(p.name+' '+(p.client||'')+' '+(p.tags||[]).join(' ')));
+  $('projectCount').textContent=list.length+' of '+S.projects.length;
+  $('projectList').innerHTML=list.map(p=>`<div class="ws-item${editingProject===p.id?' sel':''}"><div class="ws-between"><h3>${esc(p.name)}</h3>${statusPill(p.status)}</div><div class="ws-muted">${esc(p.client||'')} · /p/${esc(p.slug)}</div><p>${esc((p.description||'').slice(0,200))}</p><div class="ws-row"><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener">View page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button><button class="ws-btn small danger" data-delproject="${esc(p.id)}">Delete</button></div></div>`).join('')||'<div class="ws-empty">No projects yet.</div>';
+}
+function renderIdeas(){
+  $('ideaList').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).map(i=>`<div class="ws-item"><div class="ws-between"><h3>${esc(i.title)}</h3><select data-ideastatus="${esc(i.id)}" style="width:auto"><option${i.status==='New'?' selected':''}>New</option><option${i.status==='Review'?' selected':''}>Review</option><option${i.status==='Building'?' selected':''}>Building</option><option${i.status==='Parked'?' selected':''}>Parked</option></select></div><div class="ws-muted">${date(i.created)}</div><p>${esc(i.description||'')}</p><div class="ws-row"><button class="ws-btn small" data-idea-comment="${esc(i.id)}">Comment</button><button class="ws-btn small danger" data-delidea="${esc(i.id)}">Delete</button></div></div>`).join('')||'<div class="ws-empty">No ideas yet.</div>';
+}
+function renderFiles(){
+  const list=S.files.filter(f=>matches((f.title||'')+' '+(f.category||'')+' '+(f.name||'')));
+  $('fileCount').textContent=list.length+' of '+S.files.length;
+  $('fileList').innerHTML=list.map(f=>`<div class="ws-file">${/^image\//.test(f.type||'')?`<img class="ws-thumb" src="${esc(f.url)}" alt="">`:''}<h3>${esc(f.title||f.name||'File')}</h3><div class="ws-muted">${esc(f.category||'Other')} · ${esc((f.name||'').slice(0,40))}</div><div class="ws-row" style="margin-top:8px"><a class="ws-link" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">Open ↗</a><button class="ws-btn small danger" data-delfile="${esc(f.id)}">Remove</button></div></div>`).join('')||'<div class="ws-empty">No files yet.</div>';
+  const b=S.brand||{};
+  $('brandPreview').innerHTML=[b.primary,b.accent,b.paper,b.ink].filter(Boolean).map(c=>`<span class="ws-pill" style="background:${esc(c)};color:${esc(c)};width:26px;height:26px;padding:0;border-radius:6px" title="${esc(c)}"></span>`).join('')+`<strong class="ws-muted">${esc(b.name||'MerQato')} · ${esc(b.tagline||'')}</strong>`;
+}
+function renderLinks(){
+  const list=S.links.filter(l=>matches((l.title||'')+' '+(l.category||'')+' '+(l.url||'')));
+  $('linkCount').textContent=list.length+' of '+S.links.length;
+  $('linkList').innerHTML=list.map(l=>`<div class="ws-item" data-link="${esc(l.id)}"><div class="ws-between"><h3>${esc(l.title)}</h3><span class="ws-pill ${l.hasPassword?'green':'grey'}">${l.hasPassword?'Password saved':'No password'}</span></div><div class="ws-muted">${esc(l.category||'Other')}</div><div class="ws-muted ws-link">${esc(l.url)}</div>${l.username?`<div class="ws-muted">User: ${esc(l.username)}</div>`:''}${l.notes?`<p>${esc(l.notes)}</p>`:''}<div class="ws-row" style="margin-top:8px"><a class="ws-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">Open ↗</a>${l.hasPassword?`<button class="ws-btn small" data-reveal="${esc(l.id)}">Reveal password</button>`:''}<button class="ws-btn small" data-editlink="${esc(l.id)}">Edit</button><button class="ws-btn small danger" data-dellink="${esc(l.id)}">Delete</button></div><div data-secret="${esc(l.id)}"></div></div>`).join('')||'<div class="ws-empty">No saved links yet.</div>';
+}
+function renderComments(){
+  $('commentList').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).map(c=>`<div class="ws-item"><div class="ws-between"><strong>${esc(c.author||'Partner')}</strong><span class="ws-muted">${date(c.created)}</span></div><div class="ws-muted">${esc(c.scope?.type||'general')}${c.scope?.id?': '+esc((S.projects.find(p=>p.id===c.scope.id)||{}).name||(S.ideas.find(i=>i.id===c.scope.id)||{}).title||'item'):''}</div><p style="white-space:pre-wrap">${esc(c.text)}</p>${c.image?`<img class="ws-thumb" src="${esc(c.image)}" alt="Attachment">`:''}${c.url?`<a class="ws-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.url)} ↗</a>`:''}</div>`).join('')||'<div class="ws-empty">No comments yet.</div>';
+}
+function renderBrandForm(){
+  const b=S.brand||{};$('bName').value=b.name||'';$('bTagline').value=b.tagline||'';
+  $('bPrimary').value=b.primary||'#111111';$('bAccent').value=b.accent||'#D6001C';$('bPaper').value=b.paper||'#EDE7D9';$('bInk').value=b.ink||'#111111';
+  $('bDisplay').value=b.fonts?.display||'Anton';$('bBody').value=b.fonts?.body||'Inter';$('bGuidelines').value=b.guidelines||'';
+}
+function renderAll(){refreshSelects();renderDashboard();renderProjects();renderIdeas();renderFiles();renderLinks();renderComments();renderBrandForm()}
+$('wsNav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)go(b.dataset.view)});
+$('wsSearch').addEventListener('input',renderAll);
+$('pSave').onclick=()=>{
+  const name=$('pName').value.trim();if(!name)return toast('Add a project name first');
+  const p={id:editingProject||uid(),name,client:$('pClient').value.trim(),status:$('pStatus').value,headline:$('pHeadline').value.trim(),description:$('pDescription').value.trim(),notes:$('pNotes').value.trim(),tags:$('pTags').value.split(',').map(x=>x.trim()).filter(Boolean),image:$('pImage').value,url:$('pUrl').value.trim(),slug:slugify(name),created:new Date().toISOString()};
+  const i=S.projects.findIndex(x=>x.id===p.id);if(i>=0)S.projects[i]=p;else S.projects.unshift(p);
+  editingProject=null;$('projectFormTitle').textContent='New project';$('pReset').click();markDirty();save(true).then(renderAll);
+};
+$('pReset').onclick=()=>{editingProject=null;$('projectFormTitle').textContent='New project';['pName','pClient','pHeadline','pDescription','pNotes','pTags','pUrl'].forEach(id=>$(id).value='');$('pImage').value='';$('pStatus').value='In progress'};
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-editproject],[data-delproject],[data-delidea],[data-idea-comment],[data-delfile],[data-dellink],[data-reveal],[data-editlink]');if(!t)return;
+  if(t.dataset.editproject){const p=S.projects.find(x=>x.id===t.dataset.editproject);if(!p)return;editingProject=p.id;$('projectFormTitle').textContent='Edit project';$('pName').value=p.name||'';$('pClient').value=p.client||'';$('pStatus').value=p.status||'In progress';$('pHeadline').value=p.headline||'';$('pDescription').value=p.description||'';$('pNotes').value=p.notes||'';$('pTags').value=(p.tags||[]).join(', ');$('pUrl').value=p.url||'';$('pImage').value=p.image||'';go('projects');window.scrollTo(0,0)}
+  if(t.dataset.delproject){if(!confirm('Delete this project?'))return;S.projects=S.projects.filter(x=>x.id!==t.dataset.delproject);markDirty();save(true).then(renderAll)}
+  if(t.dataset.delidea){if(!confirm('Delete this idea?'))return;S.ideas=S.ideas.filter(x=>x.id!==t.dataset.delidea);markDirty();save(true).then(renderAll)}
+  if(t.dataset.ideacomment){go('activity');$('cScope').value='idea:'+t.dataset.ideacomment;$('cText').focus()}
+  if(t.dataset.delfile){if(!confirm('Remove this file from the library?'))return;S.files=S.files.filter(x=>x.id!==t.dataset.delfile);markDirty();save(true).then(renderAll)}
+  if(t.dataset.dellink){if(!confirm('Delete this quick link?'))return;S.links=S.links.filter(x=>x.id!==t.dataset.dellink);markDirty();save(true).then(renderAll)}
+  if(t.dataset.reveal){try{const d=await http('/api/workspace/link/reveal',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:t.dataset.reveal})});const box=document.querySelector(`[data-secret="${t.dataset.reveal}"]`);box.innerHTML=`<input readonly class="ws-field ws-secret" value="${esc(d.password)}" aria-label="Revealed password">`}catch(err){toast(err.message)}}
+  if(t.dataset.editlink){const l=S.links.find(x=>x.id===t.dataset.editlink);if(!l)return;editingLink=l.id;$('lTitle').value=l.title||'';$('lUrl').value=l.url||'';$('lCategory').value=l.category||'Client work';$('lUser').value=l.username||'';$('lNotes').value=l.notes||'';$('lPass').value='';$('lAdd').textContent='Update link';go('links');$('lTitle').focus()}
+});
+document.addEventListener('change',async e=>{if(e.target.dataset.ideastatus){const i=S.ideas.find(x=>x.id===e.target.dataset.ideastatus);if(i){i.status=e.target.value;markDirty();await save(true);renderAll()}}});
+$('iAdd').onclick=async()=>{const title=$('iTitle').value.trim();if(!title)return toast('Give the idea a title');try{await http('/api/workspace/idea',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title,description:$('iDesc').value})});$('iTitle').value='';$('iDesc').value='';toast('Idea added');await load()}catch(e){toast(e.message)}};
+$('fAdd').onclick=async()=>{
+  const url=$('fUrl').value.trim(),title=$('fTitle').value.trim();
+  try{
+    if(url){S.files.unshift({id:uid(),title:title||'Linked image',url,category:$('fCategory').value,type:'image/link',name:'external link',created:new Date().toISOString()})}
+    else if($('fInput').files.length){$('wsSaved').textContent='Uploading…';for(const f of $('fInput').files){const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});const d=await r.json();if(!r.ok)throw new Error(d.error||'Upload failed');S.files.unshift({id:uid(),title:$('fInput').files.length===1?(title||f.name):f.name,url:d.url,category:$('fCategory').value,type:d.type,name:f.name,size:d.bytes,created:new Date().toISOString()})}}
+    else return toast('Choose a file or paste a URL');
+    $('fInput').value='';$('fUrl').value='';$('fTitle').value='';markDirty();await save(true);renderAll();
+  }catch(e){toast(e.message)}
+};
+$('saveBrand').onclick=()=>{S.brand={...(S.brand||{}),name:$('bName').value.trim(),tagline:$('bTagline').value.trim(),primary:$('bPrimary').value,accent:$('bAccent').value,paper:$('bPaper').value,ink:$('bInk').value,fonts:{display:$('bDisplay').value.trim()||'Anton',body:$('bBody').value.trim()||'Inter'},logo:$('bLogo').value,guidelines:$('bGuidelines').value,updated:new Date().toISOString()};markDirty();save(true).then(()=>renderFiles())};
+$('bReset').onclick=()=>{renderBrandForm();toast('Brand form reset to saved values')};
+$('lAdd').onclick=()=>{
+  const title=$('lTitle').value.trim(),url=$('lUrl').value.trim();if(!title||!/^https?:\/\//i.test(url))return toast('Add a label and a full http(s) URL');
+  const old=S.links.find(x=>x.id===editingLink);
+  const l={id:editingLink||uid(),title,url,category:$('lCategory').value,username:$('lUser').value.trim(),notes:$('lNotes').value.trim(),password:$('lPass').value,keepSecret:!!(old&&!$('lPass').value),hasPassword:!!($('lPass').value||old?.hasPassword),created:old?.created||new Date().toISOString()};
+  const i=S.links.findIndex(x=>x.id===l.id);if(i>=0)S.links[i]=l;else S.links.unshift(l);
+  editingLink=null;$('lAdd').textContent='Save link';['lTitle','lUrl','lUser','lPass','lNotes'].forEach(id=>$(id).value='');markDirty();save(true).then(renderAll);
+};
+$('cAdd').onclick=async()=>{
+  const text=$('cText').value.trim();if(!text)return toast('Write a comment first');
+  const scope=$('cScope').value;const [type,id]=scope.includes(':')?scope.split(':'):[scope,''];
+  try{await http('/api/workspace/comment',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({author:$('cAuthor').value,scope:{type,id},text,url:$('cUrl').value.trim(),image:$('cImage').value})});$('cText').value='';$('cUrl').value='';toast('Comment posted');await load()}catch(e){toast(e.message)}
+};
+boot();
+})();
+</script>
+</body>
+</html>
