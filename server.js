@@ -5,6 +5,7 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const ROOT=__dirname, PORT=Number(process.env.PORT||3000);
 const BASE=fs.readFileSync(path.join(ROOT,'public','index.html'),'utf8');
+const WS=require('./workspace')(ROOT);
 const DATA=path.join(ROOT,'data','site.json'),UPLOADS=path.join(ROOT,'uploads');
 fs.mkdirSync(path.dirname(DATA),{recursive:true});
 fs.mkdirSync(UPLOADS,{recursive:true});
@@ -26,7 +27,7 @@ function render(){const d=readState();let h=BASE;
   if(d.css)h=h.replace('</head>',`<style id="mq-admin-custom-css">${d.css.replace(/<\/?style/gi,'')}</style></head>`);
   return h;
 }
-const extMime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime'};
+const extMime={'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.svg':'image/svg+xml','.mp4':'video/mp4','.webm':'video/webm','.mov':'video/quicktime','.pdf':'application/pdf','.txt':'text/plain','.csv':'text/csv','.zip':'application/zip','.docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
 http.createServer(async(req,res)=>{
 try{
 const u=new URL(req.url,'http://localhost'),pathname=decodeURIComponent(u.pathname);
@@ -50,7 +51,9 @@ if(pathname==='/api/site'&&req.method==='PUT'){
 if(pathname==='/api/upload'&&req.method==='POST'){
  if(!auth(req))return send(res,401,{error:'Unauthorized'});
  const types={'image/png':['png',10e6],'image/jpeg':['jpg',10e6],'image/webp':['webp',10e6],'image/gif':['gif',10e6],
-   'video/mp4':['mp4',100e6],'video/webm':['webm',100e6],'video/quicktime':['mov',100e6]};
+   'video/mp4':['mp4',100e6],'video/webm':['webm',100e6],'video/quicktime':['mov',100e6],
+   'application/pdf':['pdf',25e6],'text/plain':['txt',5e6],'text/csv':['csv',5e6],'application/zip':['zip',25e6],
+   'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['docx',25e6]};
  const contentType=(req.headers['content-type']||'').split(';')[0].trim().toLowerCase();
  let mime=contentType,buffer;
  if(contentType==='application/json'){
@@ -58,7 +61,7 @@ if(pathname==='/api/upload'&&req.method==='POST'){
   if(!m)return send(res,400,{error:'Unsupported media'});
   mime=m[1];buffer=Buffer.from(m[2],'base64');
  }else{
-  if(!types[mime])return send(res,415,{error:'Use PNG, JPEG, WebP, GIF, MP4, WebM or MOV'});
+  if(!types[mime])return send(res,415,{error:'Use PNG, JPEG, WebP, GIF, MP4, WebM, MOV, PDF, TXT, CSV, ZIP or DOCX'});
   buffer=await body(req,types[mime][1]+1);
  }
  if(!types[mime]||buffer.length>types[mime][1])return send(res,413,{error:'File exceeds media size limit'});
@@ -69,7 +72,12 @@ if(pathname==='/api/upload'&&req.method==='POST'){
   'image/gif':x=>x.toString('ascii',0,3)==='GIF',
   'video/mp4':x=>x.toString('ascii',4,8)==='ftyp',
   'video/quicktime':x=>x.toString('ascii',4,8)==='ftyp',
-  'video/webm':x=>x.subarray(0,4).equals(Buffer.from('1a45dfa3','hex'))
+  'video/webm':x=>x.subarray(0,4).equals(Buffer.from('1a45dfa3','hex')),
+  'application/pdf':x=>x.toString('ascii',0,4)==='%PDF',
+  'text/plain':x=>x.length<=5e6,
+  'text/csv':x=>x.length<=5e6,
+  'application/zip':x=>x.subarray(0,2).toString('ascii')==='PK',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document':x=>x.subarray(0,2).toString('ascii')==='PK'
  };
  if(!signatures[mime](buffer))return send(res,415,{error:'File contents do not match media type'});
  const name=crypto.randomBytes(12).toString('hex')+'.'+types[mime][0];
@@ -77,6 +85,38 @@ if(pathname==='/api/upload'&&req.method==='POST'){
  return send(res,201,{url:'/uploads/'+name,type:mime,bytes:buffer.length});
 }
 if(pathname.startsWith('/uploads/')){const f=path.basename(pathname),e=path.extname(f).toLowerCase();if(!extMime[e]||f!==pathname.slice(9))return send(res,404,{error:'Not found'});const fp=path.join(UPLOADS,f);if(!fs.existsSync(fp))return send(res,404,{error:'Not found'});res.writeHead(200,{'content-type':extMime[e],'cache-control':'public, max-age=3600','x-content-type-options':'nosniff'});return fs.createReadStream(fp).pipe(res)}
+if(pathname==='/api/workspace'&&req.method==='GET'){if(!auth(req))return send(res,401,{error:'Unauthorized'});return send(res,200,WS.publicState(WS.load()))}
+if(pathname==='/api/workspace'&&req.method==='PUT'){
+ if(!auth(req))return send(res,401,{error:'Unauthorized'});
+ const d=JSON.parse((await body(req,10e6)).toString());
+ const ok=d&&typeof d==='object'&&Array.isArray(d.projects)&&Array.isArray(d.ideas)&&Array.isArray(d.files)&&Array.isArray(d.links)&&Array.isArray(d.comments)&&d.brand&&typeof d.brand==='object';
+ if(!ok)return send(res,400,{error:'Invalid workspace data'});
+ const cur=WS.load();
+ d.links=d.links.map(l=>{const out={...l};const old=(cur.links||[]).find(x=>x.id===out.id);delete out.password;delete out.keepSecret;out.secret=typeof l.password==='string'&&l.password.length?WS.encrypt(l.password):(l.keepSecret&&old?old.secret:null);return out});
+ WS.save(d);return send(res,200,{ok:true});
+}
+if(pathname==='/api/workspace/comment'&&req.method==='POST'){
+ if(!auth(req))return send(res,401,{error:'Unauthorized'});
+ const v=JSON.parse((await body(req,20000)).toString());
+ if(!v||typeof v.text!=='string'||!v.text.trim()||v.text.length>4000)return send(res,400,{error:'Comment must be 1-4000 characters'});
+ const d=WS.load();d.comments.unshift({id:crypto.randomBytes(6).toString('hex'),scope:v.scope&&typeof v.scope==='object'?v.scope:{type:'general',id:''},author:String(v.author||'Partner').slice(0,60),text:v.text.trim(),url:/^https?:\/\/[^\s]+$/.test(v.url||'')?v.url:'',image:/^\/uploads\/[A-Za-z0-9._-]+$/.test(v.image||'')?v.image:'',created:new Date().toISOString()});
+ d.comments=d.comments.slice(0,300);WS.save(d);return send(res,200,{ok:true});
+}
+if(pathname==='/api/workspace/idea'&&req.method==='POST'){
+ if(!auth(req))return send(res,401,{error:'Unauthorized'});
+ const v=JSON.parse((await body(req,20000)).toString());
+ if(!v||typeof v.title!=='string'||!v.title.trim()||v.title.length>200)return send(res,400,{error:'Give the idea a short title'});
+ const d=WS.load();d.ideas.unshift({id:crypto.randomBytes(6).toString('hex'),title:v.title.trim().slice(0,200),description:String(v.description||'').slice(0,3000),status:'New',created:new Date().toISOString()});
+ WS.save(d);return send(res,200,{ok:true});
+}
+if(pathname==='/api/workspace/link/reveal'&&req.method==='POST'){
+ if(!auth(req))return send(res,401,{error:'Unauthorized'});
+ const v=JSON.parse((await body(req,5000)).toString());const l=(WS.load().links||[]).find(x=>x.id===v.id);
+ if(!l)return send(res,404,{error:'Link not found'});
+ return send(res,200,{password:WS.decrypt(l.secret)});
+}
+if(pathname==='/workspace'||pathname==='/workspace/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','workspace.html')))}
+if(pathname.startsWith('/p/')){const slug=pathname.slice(3).replace(/[^a-z0-9-]/gi,'').toLowerCase();const html=WS.renderProject(slug);if(!html)return send(res,404,{error:'Project not found'});res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(html)}
 if(pathname==='/admin'||pathname==='/admin/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','admin.html')))}
 if(pathname==='/'||pathname==='/index.html'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(render())}
 return send(res,404,{error:'Not found'});
