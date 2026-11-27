@@ -287,9 +287,52 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 
 <section class="ws-view" id="view-ideas">
 <div class="ws-two">
-  <div class="ws-card"><h2>New project idea</h2><div class="ws-field"><label>Title</label><input id="iTitle"></div><div class="ws-field"><label>What is it?</label><textarea id="iDesc"></textarea></div><button class="ws-btn primary" id="iAdd">Add idea</button></div>
-  <div class="ws-card"><h2>Idea board</h2><div id="ideaList" class="ws-list"></div></div>
+  <div class="ws-card"><h2 id="ideaFormTitle">New idea</h2>
+    <div class="ws-field"><label>Title</label><input id="iTitle" placeholder="e.g. Booking agent for small resorts"></div>
+    <div class="ws-pair">
+      <div class="ws-field"><label>Category</label><select id="iCategory"><option>Business</option><option>Automation</option><option>AI agent</option><option>Website</option><option>Product</option><option>Content</option><option>Other</option></select></div>
+      <div class="ws-field"><label>Stage</label><select id="iStage"><option>Spark</option><option>Research</option><option>Validating</option><option>Building</option><option>Parked</option></select></div>
+    </div>
+    <div class="ws-pair">
+      <div class="ws-field"><label>Priority</label><select id="iPriority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div>
+      <div class="ws-field"><label>Owner</label><input id="iOwner" placeholder="David / Lawrence / both"></div>
+    </div>
+    <div class="ws-pair">
+      <div class="ws-field"><label>Effort</label><select id="iEffort"><option></option><option>Days</option><option>1-2 weeks</option><option>1 month</option><option>Months</option></select></div>
+      <div class="ws-field"><label>Potential value</label><select id="iValue"><option></option><option>Side income</option><option>Recurring revenue</option><option>Portfolio</option><option>Learning</option><option>Client magnet</option></select></div>
+    </div>
+    <div class="ws-field"><label>One-line summary</label><input id="iDesc" placeholder="What is it, in one sentence?"></div>
+    <div class="ws-field"><label>The full idea</label><textarea id="iNotes" placeholder="Problem it solves, who pays, how it works, what we already have, what is missing, first three steps…" style="min-height:130px"></textarea></div>
+    <div class="ws-field"><label>Tags (comma separated)</label><input id="iTags" placeholder="tourism, automation, local"></div>
+
+    <hr class="ws-hr">
+    <div class="ws-between"><label class="ws-muted" style="font-weight:850;font-size:11px;letter-spacing:.03em;color:#3d3933">LINKS — GOOGLE DRIVE, DOCS, SHEETS, GITHUB, ANY URL</label><button class="ws-btn small" type="button" id="iAddLink">+ Add link</button></div>
+    <p class="ws-muted" style="margin:4px 0 9px">Paste a Google Drive, Docs, Sheet, Figma, GitHub or any other link — as many as you need.</p>
+    <div id="iLinks"></div>
+
+    <hr class="ws-hr">
+    <div class="ws-between"><label class="ws-muted" style="font-weight:850;font-size:11px;letter-spacing:.03em;color:#3d3933">IMAGES &amp; VIDEO</label><span class="ws-muted" id="iMediaCount">0 items</span></div>
+    <p class="ws-muted" style="margin:4px 0 9px">Sketches, screenshots, references, mood boards or a video — straight from your device.</p>
+    <div class="ws-drop">
+      <input type="file" id="iMediaInput" accept="image/*,video/*" multiple>
+      <label for="iMediaInput">Choose images or video from your device</label>
+      <div class="ws-muted" id="iMediaStatus" style="margin-top:5px">Multiple files at once · images up to 10 MB, video up to 100 MB</div>
+    </div>
+    <div class="ws-media" id="iMediaGrid"></div>
+
+    <div class="ws-row" style="margin-top:16px"><button class="ws-btn primary" id="iSave">Save idea</button><button class="ws-btn" id="iReset">Clear</button><button class="ws-btn ghost hidden" id="iOpen">Open idea ↗</button></div>
+  </div>
+
+  <div class="ws-card">
+    <div class="ws-between"><h2>Idea board</h2><span class="ws-muted" id="ideaCount"></span></div>
+    <div class="ws-row" id="ideaFilters" style="margin:10px 0 14px"></div>
+    <div id="ideaList" class="ws-board"></div>
+  </div>
 </div>
+</section>
+
+<section class="ws-view" id="view-idea">
+  <div id="ideaRoot"></div>
 </section>
 
 <section class="ws-view" id="view-files">
@@ -355,10 +398,19 @@ let S={brand:{},projects:[],ideas:[],files:[],links:[],comments:[]}, dirty=false
 const PRIOS=['Low','Medium','High','Urgent'];
 // Working draft for the project form: links + media are edited here until Save.
 let draft={links:[],media:[]}, openFolder=null, folderTab='overview';
+let ideaDraft={links:[],media:[]}, editingIdea=null, openIdea=null, ideaTab='overview';
 const isHttp=u=>/^https?:\/\/[^\s"'<>]+$/i.test(String(u||''));
 const isMediaUrl=u=>isHttp(u)||/^\/uploads\/[A-Za-z0-9._-]+$/.test(String(u||''));
 const mediaKind=(url,type)=> /^video\//i.test(type||'')||/\.(mp4|webm|mov)$/i.test(url||'')?'video':'image';
-const linkKindFromUrl=u=>{const s=String(u||'').toLowerCase();if(s.includes('github.'))return 'github';if(s.includes('vercel.'))return 'vercel';if(s.includes('figma.'))return 'figma';if(s.includes('docs.google')||s.includes('notion.'))return 'docs';return 'other'};
+const linkKindFromUrl=u=>{const s=String(u||'').toLowerCase();
+ if(s.includes('drive.google'))return 'drive';
+ if(s.includes('docs.google.com/spreadsheets'))return 'sheet';
+ if(s.includes('docs.google')||s.includes('notion.'))return 'docs';
+ if(s.includes('github.'))return 'github';
+ if(s.includes('vercel.'))return 'vercel';
+ if(s.includes('figma.'))return 'figma';
+ if(/youtube\.|youtu\.be|vimeo\./.test(s))return 'video';
+ return 'other'};
 const markDirty=()=>{dirty=true;$('wsSaved').textContent='Unsaved changes'};
 const setSaved=t=>{$('wsSaved').textContent=t;toast(t)};
 const slugify=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'project';
@@ -367,7 +419,7 @@ const searchTerm=()=>($('wsSearch').value||'').trim().toLowerCase();
 const matches=q=>String(q||'').toLowerCase().includes(searchTerm());
 const statusPill=s=>`<span class="ws-pill ${s==='Launched'?'green':s==='On hold'?'grey':'red'}">${esc(s||'In progress')}</span>`;
 function go(view){
-  const navView=view==='folder'?'projects':view;
+  const navView=view==='folder'?'projects':(view==='idea'?'ideas':view);
   document.querySelectorAll('#wsNav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===navView));
   document.querySelectorAll('.ws-view').forEach(v=>v.classList.toggle('active',v.id==='view-'+view));
   window.scrollTo({top:0,behavior:'smooth'});
@@ -599,8 +651,147 @@ function renderFolder(){
     };
   }
 }
+let ideaFilter='all';
+function ideaCover(i){const m=(i.media||[]).find(x=>x.type==='image');return m?m.url:''}
+function renderIdeaLinks(){
+  const wrap=$('iLinks');
+  if(!ideaDraft.links.length){wrap.innerHTML='<div class="ws-empty" style="padding:12px">No links yet. Add a Drive folder, a doc, a repo — anything.</div>';return}
+  wrap.innerHTML=ideaDraft.links.map((l,i)=>`<div class="ws-linkrow" data-ilinkrow="${i}">
+    <select data-ilinkkind="${i}" aria-label="Link type">
+      ${['drive','docs','sheet','figma','github','vercel','video','other'].map(k=>`<option value="${k}"${(l.kind||'other')===k?' selected':''}>${{drive:'Drive',docs:'Docs',sheet:'Sheet',figma:'Figma',github:'GitHub',vercel:'Vercel',video:'Video',other:'Link'}[k]}</option>`).join('')}
+    </select>
+    <input data-ilinklabel="${i}" placeholder="Label (optional)" value="${esc(l.label||'')}">
+    <input data-ilinkurl="${i}" placeholder="https://drive.google.com/…" value="${esc(l.url||'')}">
+    <button class="ws-btn small danger" type="button" data-ilinkdel="${i}" aria-label="Remove link">✕</button></div>`).join('');
+}
+function renderIdeaMedia(){
+  $('iMediaCount').textContent=ideaDraft.media.length+(ideaDraft.media.length===1?' item':' items');
+  $('iMediaGrid').innerHTML=ideaDraft.media.map((m,i)=>`<div class="ws-media-tile">
+    ${m.type==='video'?`<video src="${esc(m.url)}" muted playsinline preload="metadata"></video>`:`<img src="${esc(m.url)}" alt="${esc(m.title||'Idea image')}">`}
+    <span class="ws-media-tag">${m.type==='video'?'Video':'Image'}</span>
+    <button type="button" data-imediadel="${i}" aria-label="Remove">✕</button></div>`).join('');
+}
+function resetIdeaForm(){
+  editingIdea=null;ideaDraft={links:[],media:[]};
+  $('ideaFormTitle').textContent='New idea';
+  ['iTitle','iDesc','iNotes','iTags','iOwner'].forEach(id=>$(id).value='');
+  $('iCategory').value='Business';$('iStage').value='Spark';$('iPriority').value='Medium';$('iEffort').value='';$('iValue').value='';
+  $('iOpen').classList.add('hidden');
+  renderIdeaLinks();renderIdeaMedia();
+}
+function editIdea(id){
+  const i=S.ideas.find(x=>x.id===id);if(!i)return;
+  editingIdea=i.id;$('ideaFormTitle').textContent='Edit idea';
+  $('iTitle').value=i.title||'';$('iDesc').value=i.description||'';$('iNotes').value=i.notes||'';
+  $('iTags').value=(i.tags||[]).join(', ');$('iOwner').value=i.owner||'';
+  $('iCategory').value=i.category||'Other';$('iStage').value=i.stage||'Spark';
+  $('iPriority').value=i.priority||'Medium';$('iEffort').value=i.effort||'';$('iValue').value=i.value||'';
+  ideaDraft={links:(i.links||[]).map(l=>({...l})),media:(i.media||[]).map(m=>({...m}))};
+  $('iOpen').classList.remove('hidden');$('iOpen').dataset.id=i.id;
+  renderIdeaLinks();renderIdeaMedia();go('ideas');window.scrollTo({top:0,behavior:'smooth'});
+}
 function renderIdeas(){
-  $('ideaList').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).map(i=>`<div class="ws-item"><div class="ws-between"><h3>${esc(i.title)}</h3><select data-ideastatus="${esc(i.id)}" style="width:auto"><option${i.status==='New'?' selected':''}>New</option><option${i.status==='Review'?' selected':''}>Review</option><option${i.status==='Building'?' selected':''}>Building</option><option${i.status==='Parked'?' selected':''}>Parked</option></select></div><div class="ws-muted">${date(i.created)}</div><p>${esc(i.description||'')}</p><div class="ws-row"><button class="ws-btn small" data-idea-comment="${esc(i.id)}">Comment</button><button class="ws-btn small danger" data-delidea="${esc(i.id)}">Delete</button></div></div>`).join('')||'<div class="ws-empty">No ideas yet.</div>';
+  const cats=['all',...new Set(S.ideas.map(i=>i.category||'Other'))];
+  $('ideaFilters').innerHTML=cats.map(c=>`<button class="ws-filter${ideaFilter===c?' on':''}" data-ideafilter="${esc(c)}">${c==='all'?`All ${S.ideas.length}`:esc(c)}</button>`).join('');
+  const list=S.ideas.filter(i=>matches(i.title+' '+(i.description||'')+' '+(i.notes||'')+' '+(i.tags||[]).join(' ')))
+    .filter(i=>ideaFilter==='all'||(i.category||'Other')===ideaFilter);
+  $('ideaCount').textContent=list.length+' of '+S.ideas.length;
+  $('ideaList').innerHTML=list.map(i=>{
+    const cover=ideaCover(i),vid=(i.media||[]).find(m=>m.type==='video'),openN=(i.thread||threadForIdea(i.id)).filter(c=>!c.done).length;
+    const media=cover?`<img src="${esc(cover)}" alt="${esc(i.title)}" loading="lazy">`
+      : vid?`<video src="${esc(vid.url)}" muted preload="metadata"></video><div class="ws-tile-play"><span>▶</span></div>`
+      : `<div class="ws-tile-empty">No visuals yet</div>`;
+    return `<button class="ws-tile" data-openidea="${esc(i.id)}">
+      <div class="ws-tile-media">${media}${(i.media||[]).length?`<span class="ws-tile-count">${i.media.length} visual${i.media.length===1?'':'s'}</span>`:''}</div>
+      <div class="ws-tile-body">
+        <div class="ws-tile-flags">${prioPill(i.priority)}<span class="ws-pill blue">${esc(i.category||'Other')}</span><span class="ws-pill grey">${esc(i.stage||'Spark')}</span></div>
+        <h3>${esc(i.title)}</h3>
+        <div class="ws-tile-meta">${esc((i.description||i.notes||'').slice(0,95))}</div>
+        <div class="ws-tile-foot"><span class="ws-muted">${openN} open · ${(i.links||[]).length} links</span><span class="ws-muted">${esc(i.owner||'unassigned')}</span></div>
+      </div></button>`;
+  }).join('')||`<div class="ws-empty" style="grid-column:1/-1">No ideas yet. Write one on the left.</div>`;
+}
+function threadForIdea(id){return S.comments.filter(c=>c.scope&&c.scope.type==='idea'&&c.scope.id===id)}
+function openIdeaPage(id){
+  const i=S.ideas.find(x=>x.id===id);if(!i)return;
+  openIdea=i.id;ideaTab='overview';renderIdeaPage();go('idea');window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderIdeaPage(){
+  const i=S.ideas.find(x=>x.id===openIdea);
+  if(!i){$('ideaRoot').innerHTML='<div class="ws-empty">Idea not found. <button class="ws-btn small" data-ideaback="1">Back</button></div>';return}
+  const th=threadForIdea(i.id),open=th.filter(c=>!c.done),done=th.filter(c=>c.done);
+  const tabs=[['overview','Overview'],['links',`Links (${(i.links||[]).length})`],['media',`Visuals (${(i.media||[]).length})`],['thread',`Discussion (${open.length} open · ${done.length} done)`]];
+  const linkCards=(i.links||[]).map(l=>`<a class="ws-chip" href="${esc(l.url)}" target="_blank" rel="noopener" style="display:block;padding:11px 13px"><span class="ws-linkbadge ${esc(l.kind||'other')}">${esc(l.kind||'link')}</span> <strong>${esc(l.label||l.url.replace(/^https?:\/\//,''))}</strong><div class="ws-muted" style="margin-top:4px">${esc(l.url)}</div></a>`).join('')||'<div class="ws-empty">No links yet. <button class="ws-btn small" data-editidea="${esc(i.id)}">Add links</button></div>';
+  const shots=(i.media||[]).map((m,n)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}">
+    <div class="ws-shot-media">${m.type==='video'
+      ? `<video src="${esc(m.url)}" controls preload="metadata" playsinline></video>`
+      : `<img src="${esc(m.url)}" alt="${esc(m.title||'Idea visual '+(n+1))}" loading="lazy" data-lightbox="${esc(m.url)}" style="cursor:zoom-in">`}</div>
+    <figcaption class="ws-shot-cap"><span>${esc(m.title||m.name||(m.type==='video'?'Video':'Image '+(n+1)))}</span></figcaption></figure>`).join('');
+  const entry=c=>`<div class="ws-entry ${esc((c.priority||'Medium').toLowerCase())}${c.done?' done':''}">
+    <div class="ws-entry-head"><strong>${esc(c.author||'Partner')}</strong>${prioPill(c.priority)}<span>${c.done?'Completed '+date(c.completedAt):'Raised '+date(c.created)}</span>${c.done&&c.completedBy?`<span>· by ${esc(c.completedBy)}</span>`:''}</div>
+    <p>${esc(c.text)}</p>
+    ${(c.attachments||[]).length?`<div class="ws-attrow">${c.attachments.map(a=>a.type==='video'?`<video src="${esc(a.url)}" controls preload="metadata" playsinline></video>`:`<a href="${esc(a.url)}" target="_blank" rel="noopener"><img src="${esc(a.url)}" alt="${esc(a.name||'Attachment')}" loading="lazy"></a>`).join('')}</div>`:''}
+    ${c.url?`<a class="ws-link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)} ↗</a>`:''}
+    <div class="ws-row" style="margin-top:8px">
+      <select data-entryprio="${esc(c.id)}" style="width:auto;border:1px solid #d3cec6;border-radius:5px;padding:4px 6px;font-size:11px">${PRIOS.map(x=>`<option${c.priority===x?' selected':''}>${x}</option>`).join('')}</select>
+      <button class="ws-btn small ${c.done?'':'dark'}" data-entrydone="${esc(c.id)}">${c.done?'Reopen':'Mark complete'}</button>
+    </div></div>`;
+  $('ideaRoot').innerHTML=`
+  <div class="ws-row" style="margin-bottom:12px"><button class="ws-btn small" data-ideaback="1">← All ideas</button><button class="ws-btn small" data-editidea="${esc(i.id)}">Edit idea</button><button class="ws-btn small danger" data-delidea="${esc(i.id)}">Delete</button></div>
+  <div class="ws-card">
+    <div class="ws-folderhead">
+      <div style="min-width:0"><div class="ws-eyebrow">IDEA</div>
+        <h2 style="font-size:26px;letter-spacing:-.04em;margin:6px 0 4px;overflow-wrap:anywhere">${esc(i.title)}</h2>
+        <div class="ws-muted">${esc(i.category||'Other')} · ${esc(i.stage||'Spark')}${i.owner?' · '+esc(i.owner):''}${i.created?' · added '+date(i.created):''}</div>
+      </div>
+      <div class="ws-row">${prioPill(i.priority)}<span class="ws-pill blue">${esc(i.stage||'Spark')}</span></div>
+    </div>
+    <div class="ws-tabs" style="margin-top:14px">${tabs.map(([k,l])=>`<button class="ws-tab${ideaTab===k?' active':''}" data-ideatab="${k}">${esc(l)}</button>`).join('')}</div>
+    <div id="ideaTabBody"></div>
+  </div>`;
+  const body=$('ideaTabBody');
+  if(ideaTab==='overview'){
+    const cover=ideaCover(i);
+    body.innerHTML=`<div class="ws-two" style="align-items:start">
+      <div>
+        <p style="font-size:16px;margin:0 0 12px">${esc(i.description||'No summary yet.')}</p>
+        ${i.notes?`<div class="ws-muted" style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px">The full idea</div><div style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(i.notes)}</div>`:''}
+        <div class="ws-row" style="margin-top:14px">
+          ${i.effort?`<span class="ws-pill grey">Effort: ${esc(i.effort)}</span>`:''}
+          ${i.value?`<span class="ws-pill green">Value: ${esc(i.value)}</span>`:''}
+          ${(i.tags||[]).map(t=>`<span class="ws-chip">${esc(t)}</span>`).join('')}
+        </div>
+        <hr class="ws-hr"><div class="ws-chiprow">${linkCards}</div>
+      </div>
+      <div>${cover?`<div class="ws-hero"><img src="${esc(cover)}" alt="${esc(i.title)}" data-lightbox="${esc(cover)}" style="cursor:zoom-in"></div>`:'<div class="ws-empty">No visuals yet.</div>'}</div>
+    </div>`;
+  }
+  if(ideaTab==='links'){body.innerHTML=`<div class="ws-chiprow">${linkCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editidea="${esc(i.id)}">Manage links</button>`}
+  if(ideaTab==='media'){body.innerHTML=`<div class="ws-shotgrid">${shots||'<div class="ws-empty" style="grid-column:1/-1">No visuals yet.</div>'}</div><hr class="ws-hr"><button class="ws-btn primary" data-editidea="${esc(i.id)}">Add visuals</button>`}
+  if(ideaTab==='thread'){
+    body.innerHTML=`
+      <div class="ws-card" style="background:var(--ws-soft);margin-bottom:14px;border-style:dashed">
+        <h4 style="margin:0 0 10px;font-size:13px">Comment on this idea</h4>
+        <div class="ws-field"><textarea id="iComment" placeholder="Thought, question, risk, price idea, next step…"></textarea></div>
+        <div class="ws-field"><input type="file" id="iCommentFiles" accept="image/*,video/*" multiple></div>
+        <div class="ws-pair"><div class="ws-field"><label>From</label><select id="iAuthor"><option>David</option><option>Lawrence</option></select></div>
+        <div class="ws-field"><label>Priority</label><select id="iCommentPriority">${PRIOS.map(x=>`<option${x==='Medium'?' selected':''}>${x}</option>`).join('')}</select></div></div>
+        <div class="ws-row"><button class="ws-btn primary" id="iCommentSave">Post comment</button><span class="ws-muted" id="iCommentStatus"></span></div>
+      </div>
+      <h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Open · ${open.length}</h4>
+      <div class="ws-thread">${open.map(entry).join('')||'<div class="ws-empty">No comments yet.</div>'}</div>
+      <h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#177a4f;margin:20px 0 8px">Completed · ${done.length}</h4>
+      <div class="ws-thread">${done.map(entry).join('')||'<div class="ws-empty">Nothing completed.</div>'}</div>`;
+    $('iCommentSave').onclick=async()=>{
+      const text=$('iComment').value.trim();if(!text)return toast('Write a comment first');
+      const status=$('iCommentStatus'),attachments=[];
+      for(const f of Array.from($('iCommentFiles').files||[])){
+        status.textContent='Uploading '+f.name+'…';
+        try{const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});const d=await r.json();if(!r.ok)throw new Error(d.error||'Upload failed');attachments.push({url:d.url,type:mediaKind(d.url,d.type),name:f.name})}catch(err){toast(f.name+': '+err.message)}
+      }
+      try{await http('/api/workspace/comment',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({author:$('iAuthor').value,priority:$('iCommentPriority').value,text,scope:{type:'idea',id:i.id},attachments})});status.textContent='Posted.';await load();renderIdeaPage()}catch(err){status.textContent='';toast(err.message)}
+    };
+  }
 }
 function renderFiles(){
   const list=S.files.filter(f=>matches((f.title||'')+' '+(f.category||'')+' '+(f.name||'')));
@@ -699,7 +890,7 @@ function renderDraftLinks(){
   const wrap=$('pLinks');
   if(!draft.links.length){wrap.innerHTML='<div class="ws-empty" style="padding:12px">No links yet. Add GitHub, Vercel or any relevant URL.</div>';return}
   wrap.innerHTML=draft.links.map((l,i)=>`<div class="ws-linkrow" data-linkrow="${i}">
-    <select data-linkkind="${i}" aria-label="Link type"><option value="github"${l.kind==='github'?' selected':''}>GitHub</option><option value="vercel"${l.kind==='vercel'?' selected':''}>Vercel</option><option value="figma"${l.kind==='figma'?' selected':''}>Figma</option><option value="docs"${l.kind==='docs'?' selected':''}>Docs</option><option value="preview"${l.kind==='preview'?' selected':''}>Preview</option><option value="other"${l.kind==='other'?' selected':''}>Other</option></select>
+    <select data-linkkind="${i}" aria-label="Link type"><option value="github"${l.kind==='github'?' selected':''}>GitHub</option><option value="vercel"${l.kind==='vercel'?' selected':''}>Vercel</option><option value="figma"${l.kind==='figma'?' selected':''}>Figma</option><option value="docs"${l.kind==='docs'?' selected':''}>Docs</option><option value="drive"${l.kind==='drive'?' selected':''}>Drive</option><option value="sheet"${l.kind==='sheet'?' selected':''}>Sheet</option><option value="video"${l.kind==='video'?' selected':''}>Video</option><option value="preview"${l.kind==='preview'?' selected':''}>Preview</option><option value="other"${l.kind==='other'?' selected':''}>Other</option></select>
     <input data-linklabel="${i}" placeholder="Label (optional)" value="${esc(l.label||'')}">
     <input data-linkurl="${i}" placeholder="https://github.com/org/repo" value="${esc(l.url||'')}">
     <button class="ws-btn small danger" type="button" data-linkdel="${i}" aria-label="Remove link">✕</button></div>`).join('');
@@ -756,15 +947,21 @@ $('pMediaAddUrl').onclick=()=>{
   $('pMediaUrl').value='';$('pMediaTitle').value='';renderDraftMedia();
 };
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-editproject],[data-delproject],[data-delidea],[data-idea-comment],[data-delfile],[data-dellink],[data-reveal],[data-editlink],[data-openfolder],[data-folderback],[data-foldertab],[data-entrydone],[data-entryprio]');if(!t)return;
+  const t=e.target.closest('[data-editproject],[data-delproject],[data-delidea],[data-idea-comment],[data-delfile],[data-dellink],[data-reveal],[data-editlink],[data-openfolder],[data-folderback],[data-foldertab],[data-entrydone],[data-entryprio],[data-openidea],[data-ideaback],[data-editidea],[data-ideatab],[data-ideafilter],[data-delidea]');if(!t)return;
   if(t.dataset.editproject){editProject(t.dataset.editproject)}
   if(t.dataset.openfolder){openFolderPage(t.dataset.openfolder)}
+  if(t.dataset.openidea){openIdeaPage(t.dataset.openidea)}
+  if(t.dataset.ideaback){go('ideas')}
+  if(t.dataset.editidea){editIdea(t.dataset.editidea)}
+  if(t.dataset.ideatab){ideaTab=t.dataset.ideatab;renderIdeaPage()}
+  if(t.dataset.ideafilter){ideaFilter=t.dataset.ideafilter;renderIdeas()}
+  if(t.dataset.delidea){if(!confirm('Delete this idea?'))return;S.ideas=S.ideas.filter(x=>x.id!==t.dataset.delidea);openIdea=null;go('ideas');markDirty();save(true).then(renderAll)}
   if(t.dataset.folderback){go('projects')}
   if(t.dataset.foldertab){folderTab=t.dataset.foldertab;renderFolder()}
   if(t.dataset.entrydone){const c=S.comments.find(x=>x.id===t.dataset.entrydone);if(c){
      try{await http('/api/workspace/comment/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:c.id,done:!c.done,author:$('fAuthor')?.value||c.author})});await load();renderFolder();renderAll();toast(c.done?'Reopened':'Marked complete')}catch(err){toast(err.message)}}}
   if(t.dataset.delproject){if(!confirm('Delete this project?'))return;S.projects=S.projects.filter(x=>x.id!==t.dataset.delproject);markDirty();save(true).then(renderAll)}
-  if(t.dataset.delidea){if(!confirm('Delete this idea?'))return;S.ideas=S.ideas.filter(x=>x.id!==t.dataset.delidea);markDirty();save(true).then(renderAll)}
+  if(t.dataset.delidea){if(!confirm('Delete this idea?'))return;S.ideas=S.ideas.filter(x=>x.id!==t.dataset.delidea);openIdea=null;go('ideas');markDirty();save(true).then(renderAll)}
   if(t.dataset.ideacomment){go('activity');$('cScope').value='idea:'+t.dataset.ideacomment;$('cText').focus()}
   if(t.dataset.delfile){if(!confirm('Remove this file from the library?'))return;S.files=S.files.filter(x=>x.id!==t.dataset.delfile);markDirty();save(true).then(renderAll)}
   if(t.dataset.dellink){if(!confirm('Delete this quick link?'))return;S.links=S.links.filter(x=>x.id!==t.dataset.dellink);markDirty();save(true).then(renderAll)}
@@ -772,7 +969,63 @@ document.addEventListener('click',async e=>{
   if(t.dataset.editlink){const l=S.links.find(x=>x.id===t.dataset.editlink);if(!l)return;editingLink=l.id;$('lTitle').value=l.title||'';$('lUrl').value=l.url||'';$('lCategory').value=l.category||'Client work';$('lUser').value=l.username||'';$('lNotes').value=l.notes||'';$('lPass').value='';$('lAdd').textContent='Update link';go('links');$('lTitle').focus()}
 });
 document.addEventListener('change',async e=>{if(e.target.dataset.ideastatus){const i=S.ideas.find(x=>x.id===e.target.dataset.ideastatus);if(i){i.status=e.target.value;markDirty();await save(true);renderAll()}}});
-$('iAdd').onclick=async()=>{const title=$('iTitle').value.trim();if(!title)return toast('Give the idea a title');try{await http('/api/workspace/idea',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title,description:$('iDesc').value})});$('iTitle').value='';$('iDesc').value='';toast('Idea added');await load()}catch(e){toast(e.message)}};
+$('iSave').onclick=async()=>{
+  const title=$('iTitle').value.trim();if(!title)return toast('Give the idea a title');
+  const old=S.ideas.find(x=>x.id===editingIdea);
+  const idea={id:editingIdea||uid(),title,
+    description:$('iDesc').value.trim(),notes:$('iNotes').value.trim(),
+    category:$('iCategory').value,stage:$('iStage').value,priority:$('iPriority').value,
+    owner:$('iOwner').value.trim(),effort:$('iEffort').value,value:$('iValue').value,
+    tags:$('iTags').value.split(',').map(x=>x.trim()).filter(Boolean),
+    links:ideaDraft.links.filter(l=>isHttp(l.url)).map(l=>({id:l.id||uid(),label:l.label||'',url:l.url,kind:l.kind||linkKindFromUrl(l.url)})),
+    media:ideaDraft.media.slice(),
+    status:old?.status||'New',
+    created:old?.created||new Date().toISOString(),updated:new Date().toISOString()};
+  const idx=S.ideas.findIndex(x=>x.id===idea.id);
+  if(idx>=0)S.ideas[idx]=idea;else S.ideas.unshift(idea);
+  resetIdeaForm();
+  markDirty();await save(true);renderAll();toast('Idea saved');
+};
+$('iReset').onclick=resetIdeaForm;
+$('iOpen').onclick=()=>{const id=$('iOpen').dataset.id;if(id)openIdeaPage(id)};
+$('iAddLink').onclick=()=>{ideaDraft.links.push({id:uid(),label:'',url:'',kind:'other'});renderIdeaLinks()};
+$('iLinks').addEventListener('change',e=>{
+  const el=e.target,i=Number(el.dataset.ilinkkind ?? el.dataset.ilinklabel ?? el.dataset.ilinkurl);
+  if(!Number.isFinite(i)||!ideaDraft.links[i])return;
+  if(el.dataset.ilinkkind!==undefined)ideaDraft.links[i].kind=el.value;
+  if(el.dataset.ilinklabel!==undefined)ideaDraft.links[i].label=el.value;
+  if(el.dataset.ilinkurl!==undefined){ideaDraft.links[i].url=el.value.trim();if(ideaDraft.links[i].kind==='other')ideaDraft.links[i].kind=linkKindFromUrl(el.value)}
+});
+$('iLinks').addEventListener('input',e=>{
+  const el=e.target,i=Number(el.dataset.ilinklabel ?? el.dataset.ilinkurl);
+  if(!Number.isFinite(i)||!ideaDraft.links[i])return;
+  if(el.dataset.ilinklabel!==undefined)ideaDraft.links[i].label=el.value;
+  if(el.dataset.ilinkurl!==undefined)ideaDraft.links[i].url=el.value.trim();
+});
+$('iLinks').addEventListener('click',e=>{
+  const b=e.target.closest('[data-ilinkdel]');if(!b)return;
+  ideaDraft.links.splice(Number(b.dataset.ilinkdel),1);renderIdeaLinks();
+});
+$('iMediaGrid').addEventListener('click',e=>{
+  const b=e.target.closest('[data-imediadel]');if(!b)return;
+  ideaDraft.media.splice(Number(b.dataset.imediadel),1);renderIdeaMedia();
+});
+$('iMediaInput').addEventListener('change',async e=>{
+  const list=Array.from(e.target.files||[]);if(!list.length)return;
+  const status=$('iMediaStatus');
+  for(let n=0;n<list.length;n++){
+    const f=list[n];
+    status.textContent=`Uploading ${n+1} of ${list.length}: ${f.name}`;
+    try{
+      const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});
+      const d=await r.json();if(!r.ok)throw new Error(d.error||'Upload failed');
+      ideaDraft.media.push({id:uid(),url:d.url,type:mediaKind(d.url,d.type),name:f.name,title:f.name.replace(/\.[a-z0-9]+$/i,''),created:new Date().toISOString()});
+      renderIdeaMedia();
+    }catch(err){toast(f.name+': '+err.message)}
+  }
+  status.textContent=list.length+' file'+(list.length===1?'':'s')+' ready. Remember to save the idea.';
+  $('iMediaInput').value='';
+});
 $('fAdd').onclick=async()=>{
   const url=$('fUrl').value.trim(),title=$('fTitle').value.trim();
   try{
