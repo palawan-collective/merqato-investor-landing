@@ -339,7 +339,7 @@ $('wsLogout').onclick=async()=>{await http('/api/logout',{method:'POST'});locati
 async function boot(){
   try{
     const me=await http('/api/me');
-    if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');$('wsLoginErr').textContent=me.needsPassword?'No admin password is configured on this deployment yet.':'';return}
+    if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');return}
     $('wsLogin').classList.add('hidden');$('wsApp').classList.remove('hidden');
     await load();renderDraftLinks();renderDraftMedia();
   }catch(e){$('wsApp').classList.remove('hidden');$('wsSaved').textContent=e.message}
