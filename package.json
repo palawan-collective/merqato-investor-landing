@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "MQ_LOCAL_PREVIEW=1 node server.js",
-    "check": "node --check server.js && node --check workspace.js && node -e \"require('./workspace')(process.cwd())\""
+    "check": "node --check server.js && node --check agent.js && node --check workspace.js && node -e \"require('./workspace')(process.cwd())\" && node test/page-patches.test.js",
+    "test": "node test/page-patches.test.js"
   }
 }

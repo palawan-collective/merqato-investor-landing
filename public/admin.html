@@ -114,11 +114,144 @@ html,body,#app,.main,.side{color-scheme:light!important;background:#EDE7D9!impor
  function renderSections(){if(!doc())return;const list=$('sectionList');list.innerHTML='';sections().forEach((s,i)=>{const item=document.createElement('div');item.className='section-item';const label=document.createElement('span');label.className='section-name';label.textContent=(s.id||'section '+(i+1))+' — '+(s.querySelector('h2,h1')?.textContent||'').trim().slice(0,32);const tools=document.createElement('span');tools.className='tools';[['↑',()=>{const prev=sections()[i-1];if(prev)s.parentNode.insertBefore(s,prev);sync()}],['↓',()=>{const next=sections()[i+1];if(next)s.parentNode.insertBefore(next,s);sync()}],['Edit',()=>{s.scrollIntoView({behavior:'smooth',block:'start'});setTab('edit');choose(s.querySelector('h2,h1')||s)}],['×',()=>{if(confirm('Delete this section?')){s.remove();sync()}}]].forEach(([t,fn])=>{const b=document.createElement('button');b.textContent=t;b.type='button';b.onclick=fn;tools.appendChild(b)});item.append(label,tools);list.appendChild(item)})}
  function addSection(){let title=$('newSectionTitle').value.trim()||'New section';let type=$('newSectionType').value;let d=doc(),main=d.querySelector('main'),s=d.createElement('section');s.className='section'+(type==='dark'?' dark':'');s.id='custom-'+Math.random().toString(36).slice(2,9);s.innerHTML=`<div class="wrap"><div class="kicker"><span class="num">+</span> New section</div><h2 class="display h2"></h2><p class="intro2">Add your description here.</p>${type==='cards'?'<div class="cards3"><div class="card"><h3>First card</h3><p>Edit this description.</p></div><div class="card"><h3>Second card</h3><p>Edit this description.</p></div><div class="card"><h3>Third card</h3><p>Edit this description.</p></div></div>':''}</div>`;s.querySelector('h2').textContent=title;const closing=main.querySelector('.closing');main.insertBefore(s,closing||null);sync();s.scrollIntoView({behavior:'smooth'});setTab('edit');choose(s.querySelector('h2'))}
  async function uploadFile(file){const res=await fetch('/api/upload',{method:'POST',headers:{'content-type':file.type,'x-file-name':encodeURIComponent(file.name)},body:file});const val=await res.json();if(!res.ok)throw Error(val.error||'Upload failed');return val.url}
- function collect(){const d=doc();if(picked){picked.style.removeProperty('outline');picked=null}const main=d.querySelector('main'),nav=d.querySelector('nav');let mainCopy=main.cloneNode(true);mainCopy.querySelectorAll('[contenteditable],.mq-editor-highlight').forEach(e=>{e.removeAttribute('contenteditable');e.classList.remove('mq-editor-highlight')});return {main:mainCopy.outerHTML,nav:nav.outerHTML,css:css()}}
+// ---------------------------------------------------------------------------
+// Saving as a diff.
+//
+// The old editor saved a complete copy of <main> and <nav>. That copy outlived
+// the page it was taken from: every later change to index.html was pasted over
+// by the stale clone, so deploys looked like they did nothing.
+//
+// These helpers walk the preview (the live page) and the pristine copy of the
+// page it was loaded from, and emit only what actually differs: text, attribute,
+// style, removed elements and added elements. Paths are tag:index chains, the
+// same ones the server resolves.
+// ---------------------------------------------------------------------------
+const ORIG = {}; // kind -> pristine element snapshot
+
+function pathOf(el, container){
+  const parts = [];
+  let n = el;
+  while (n && n !== container && n.parentElement) {
+    const tag = n.tagName.toLowerCase();
+    let i = 0, sib = n;
+    while ((sib = sib.previousElementSibling)) if (sib.tagName === n.tagName) i++;
+    parts.unshift(tag + ':' + i);
+    n = n.parentElement;
+  }
+  return parts.join('>');
+}
+
+// A stable snapshot of a subtree: tag, text content, attributes, and children.
+function snapshot(el){
+  return {
+    tag: el.tagName.toLowerCase(),
+    text: el.children.length ? '' : (el.textContent || '').replace(/\s+/g, ' ').trim(),
+    attrs: [...el.attributes].reduce((a, x) => { a[x.name] = x.value; return a }, {}),
+    kids: [...el.children].map(snapshot)
+  };
+}
+
+function diffNodes(now, was, path, kind, out){
+  if (!was) {                       // element did not exist before
+    out.push({ op: 'add', kind, path: path.split('>').slice(0, -1).join('>'), html: now.outerHTML.replace(/\s*contenteditable="[^"]*"/gi, '') });
+    return;
+  }
+  if (!now.children.length) {
+    const t = (now.textContent || '').replace(/\s+/g, ' ').trim();
+    if (t !== was.text) out.push({ op: 'text', kind, path, value: t });
+  }
+  for (const a of now.attributes) {
+    if (a.name === 'contenteditable' || a.name === 'class' && /mq-editor-highlight/.test(a.value)) continue;
+    if (was.attrs[a.name] === a.value) continue;
+    if (a.name === 'style') out.push({ op: 'style', kind, path, value: a.value });
+    else out.push({ op: 'attr', kind, path, name: a.name, value: a.value });
+  }
+  for (const name of Object.keys(was.attrs)) {
+    if (now.hasAttribute(name)) continue;
+    out.push({ op: 'attr', kind, path, name, value: '' });
+  }
+  const count = {};
+  for (const kid of now.children) {
+    const tag = kid.tagName.toLowerCase();
+    const i = count[tag] = (count[tag] === undefined ? 0 : count[tag] + 1);
+    diffNodes(kid, (was.kids[tag] || [])[i], path + (path ? '>' : '') + tag + ':' + i, kind, out);
+  }
+  const nowCount = {};
+  for (const kid of now.children) nowCount[kid.tagName.toLowerCase()] = (nowCount[kid.tagName.toLowerCase()] || 0) + 1;
+  for (const [tag, list] of Object.entries(was.kids)) {
+    for (let i = (nowCount[tag] || 0); i < list.length; i++) {
+      out.push({ op: 'remove', kind, path: path + (path ? '>' : '') + tag + ':' + i });
+    }
+  }
+}
+
+// Build the patch list by comparing the edited preview with the pristine copy.
+function collect(){
+  const d = doc();
+  if (!d) return { patches: [], css: css() };
+  if (picked) { picked.style.removeProperty('outline'); picked = null; }
+  const patches = [];
+  for (const [kind, selector] of [['main', 'main'], ['nav', 'nav']]) {
+    const live = d.querySelector(selector);
+    if (!live) continue;
+    const now = live.querySelectorAll('[contenteditable]');
+    now.forEach(e => e.removeAttribute('contenteditable'));
+    live.querySelectorAll('.mq-editor-highlight').forEach(e => e.classList.remove('mq-editor-highlight'));
+    diffNodes(snapshot(live), ORIG[kind], '', kind, patches);
+  }
+  if (patches.length > 4000) throw Error('Too many changes at once — save in smaller steps.');
+  return { patches, css: css() };
+}
+
+// Remember the page as it was loaded, and re-apply the saved diff on reload so
+// the editor always shows what visitors see.
+async function primeOriginal(){
+  const d = doc();
+  if (!d) return;
+  try {
+    const state = await (await fetch('/api/site')).json();
+    if (Array.isArray(state.patches) && state.patches.length) {
+      paintPatches(JSON.parse(JSON.stringify(state.patches)));
+    }
+  } catch (e) { console.warn(e); }
+  for (const [kind, selector] of [['main', 'main'], ['nav', 'nav']]) {
+    const el = d.querySelector(selector);
+    if (el) ORIG[kind] = snapshot(el);
+  }
+}
+
+// Mirror of the server's patch application, on live DOM nodes.
+function paintPatches(patches){
+  const d = doc();
+  if (!d) return;
+  const at = (kind, path) => {
+    const root = d.querySelector(kind === 'nav' ? 'nav' : 'main');
+    if (!root) return path ? null : root;
+    if (!path) return root;
+    let n = root;
+    for (const part of path.split('>')) {
+      const [tag, idx] = part.split(':');
+      const kids = [...n.children].filter(c => c.tagName.toLowerCase() === tag);
+      n = kids[Number(idx)];
+      if (!n) return null;
+    }
+    return n;
+  };
+  const list = patches.slice().sort((a, b) => (b.op === 'remove') - (a.op === 'remove'));
+  for (const p of list) {
+    const el = at(p.kind, p.path);
+    if (!el) continue;
+    if (p.op === 'text') el.textContent = p.value;
+    else if (p.op === 'attr') { if (p.value === '') el.removeAttribute(p.name); else el.setAttribute(p.name, p.value); }
+    else if (p.op === 'style') el.setAttribute('style', p.value);
+    else if (p.op === 'add') { const t = d.createElement('div'); t.innerHTML = p.html; [...t.children].forEach(c => el.appendChild(c)); }
+    else if (p.op === 'remove') el.remove();
+  }
+}
  async function save(){try{const r=await fetch('/api/site',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(collect())});const data=await r.json();if(!r.ok)throw Error(data.error);dirty=false;show('Published successfully');}catch(e){show('Save failed');alert(e.message)}}
  function updateSocialFields(){const d=doc();$('brandText').value=d.querySelector('.nav .mq-name')?.textContent||'MerQato Digital';$('brandSubtitle').value=d.querySelector('.nav .brand-sub')?.textContent||'PALAWAN COLLECTIVE';$('brandImage').value=d.querySelector('.nav .mq-logo-image')?.getAttribute('src')||'';for(const [id,key] of [['socialGitHub','github'],['socialX','x'],['socialLinkedIn','linkedin']]){$(id).value=d.querySelector(`[data-social="${key}"]`)?.getAttribute('href')||''}}
- async function init(){try{const r=await fetch('/api/site');const state=await r.json();if(state.css){let cssText=state.css;const r=(k)=>new RegExp('--'+k+':([^;}]+)').exec(cssText)?.[1]?.trim();theme.red=r('red')||theme.red;theme.paper=r('paper')||theme.paper;theme.ink=r('ink')||theme.ink;theme.display=/--display:'([^']+)'/.exec(cssText)?.[1]||theme.display;theme.body=/--sans:'([^']+)'/.exec(cssText)?.[1]||theme.body;customCss=cssText.includes('/* MQ-CUSTOM */')?cssText.split('/* MQ-CUSTOM */')[1]:'';$('customCss').value=customCss;$('themeRed').value=theme.red;$('themePaper').value=theme.paper;$('themeInk').value=theme.ink;$('fontDisplay').value=theme.display;$('fontBody').value=theme.body}}catch(e){console.warn(e)}if(frame.contentDocument?.readyState==='complete')hydrate()}
- $('save').onclick=save;$('refresh').onclick=()=>{if(dirty&&!confirm('Discard unsaved changes?'))return;frame.contentWindow.location.reload();dirty=false;show('Reloaded')};frame.addEventListener('load',()=>{if(!$('app').classList.contains('hidden'))hydrate()});
+ async function init(){try{const r=await fetch('/api/site');const state=await r.json();if(state.css){let cssText=state.css;const r=(k)=>new RegExp('--'+k+':([^;}]+)').exec(cssText)?.[1]?.trim();theme.red=r('red')||theme.red;theme.paper=r('paper')||theme.paper;theme.ink=r('ink')||theme.ink;theme.display=/--display:'([^']+)'/.exec(cssText)?.[1]||theme.display;theme.body=/--sans:'([^']+)'/.exec(cssText)?.[1]||theme.body;customCss=cssText.includes('/* MQ-CUSTOM */')?cssText.split('/* MQ-CUSTOM */')[1]:'';$('customCss').value=customCss;$('themeRed').value=theme.red;$('themePaper').value=theme.paper;$('themeInk').value=theme.ink;$('fontDisplay').value=theme.display;$('fontBody').value=theme.body}}catch(e){console.warn(e)}if(frame.contentDocument?.readyState==='complete'){primeOriginal().then(hydrate)}}
+ $('save').onclick=save;$('refresh').onclick=()=>{if(dirty&&!confirm('Discard unsaved changes?'))return;frame.contentWindow.location.reload();dirty=false;show('Reloaded')};frame.addEventListener('load',async()=>{if($('app').classList.contains('hidden'))return;await primeOriginal();hydrate()});
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));$('applyText').onclick=updateSelectedText;$('applyUrl').onclick=()=>{const a=picked?.closest('a');if(!a)return;const v=$('editUrl').value.trim();if(!/^(https?:\/\/|mailto:|#|\/)/.test(v))return alert('Use an HTTPS URL, mailto link, or section anchor');a.setAttribute('href',v);sync()};
  $('applyImage').onclick=()=>{if(!picked?.matches('img'))return;picked.src=$('imageUrl').value.trim();sync()};$('imageUpload').onchange=async e=>{const file=e.target.files[0];if(!file||!picked?.matches('img'))return;try{const url=await uploadFile(file);picked.src=url;$('imageUrl').value=url;$('imagePreview').src=url;sync()}catch(err){alert(err.message)}};
  $('applyBold').onclick=()=>{if(picked){picked.style.fontWeight='800';sync()}};$('applyItalic').onclick=()=>{if(picked){picked.style.fontStyle='italic';sync()}};$('clearInline').onclick=()=>{if(picked){picked.removeAttribute('style');sync()}};$('removeSelected').onclick=()=>{if(!picked)return;const removable=picked.closest('.mq-media-item,.card,.project,.project-card,.mq-socials a');if(!removable)return alert('Select a portfolio card or social icon to remove it. For entire sections use the Sections tab.');if(confirm('Delete selected item?')){removable.remove();picked=null;$('fields').classList.add('hidden');sync()}};
