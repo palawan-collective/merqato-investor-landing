@@ -83,7 +83,22 @@ Deploy as a Node service on port 3000. No environment variables are required. Th
 
 Mount persistent volumes for `/app/data` and `/app/uploads`, otherwise saved projects and uploaded images disappear on every redeploy — that alone looks like "nothing changed". Back up both volumes. Storage is local disk; if media traffic grows, move files to R2 or another object store.
 
-If the Coolify app still serves the old page after a deploy, hit `/health` on the live domain. If it 404s or returns an old `build` value, Coolify is not running this container — rebuild it: **Coolify → your app → Deployments → Redeploy**, and confirm the container logs end with `MerQato site + admin at http://localhost:3000`.
+### "I deployed and nothing changed"
+
+Check in this order. Each step rules out one cause, so do not skip ahead.
+
+1. **Is the new code on the server?** Open `https://lawrence.merqato.digital/health?cb=1`. It returns `build`, `started` and `cwd`.
+   - `build` is the newest marker and `started` is recent → the deploy worked. The problem is a cache, go to step 2.
+   - `build` is old → the container was never replaced. Coolify → your app → **Deploy** (not *Redeploy*), then wait for green.
+   - It 404s → Coolify is not running this container at all. Confirm the container logs end with `MerQato site + admin at http://localhost:3000`, and that the app's build pack is set to the Dockerfile.
+
+2. **Is a cache involved?** This app now sends `cache-control: no-store, no-cache, must-revalidate` plus `pragma: no-cache` on every page, so browsers, Cloudflare and any proxy must re-check on every request. If you still see old HTML after step 1 passed, it is almost always one of:
+   - Cloudflare **Caching → Cache Rules** with a rule that overrides origin headers (an "Ignore origin cache-control" / Edge Cache TTL setting).
+   - A Cloudflare **Page Rule** or the **Always Online** feature serving a stored copy.
+   - A Coolify/Nginx proxy cache in front of the container.
+   To prove which: load the site on mobile data with a query string like `/?cb=2`. If that shows the new page, the origin is fine and the cache is in front.
+
+3. **Still stuck?** Open `/workspace` and read the small grey line at the bottom-left of the sidebar. `build 2026-11-27-v8` means new code; `build unversioned` means old code is still being served.
 
 ## Notes
 
