@@ -339,7 +339,7 @@ $('wsLogout').onclick=async()=>{await http('/api/logout',{method:'POST'});locati
 async function boot(){
   try{
     const me=await http('/api/me');
-    if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');return}
+    if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');$('wsLoginErr').textContent=me.needsPassword?'No admin password is configured on this deployment yet.':'';return}
     $('wsLogin').classList.add('hidden');$('wsApp').classList.remove('hidden');
     await load();renderDraftLinks();renderDraftMedia();
   }catch(e){$('wsApp').classList.remove('hidden');$('wsSaved').textContent=e.message}
@@ -356,9 +356,11 @@ async function load(){
 }
 async function save(notify){
   try{
-    await http('/api/workspace',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(S)});
+    const res=await http('/api/workspace',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify(S)});
     S.links.forEach(l=>{if(l.password){l.keepSecret=true;delete l.password}});
-    dirty=false;if(notify)setSaved('Saved '+new Date().toLocaleTimeString());else $('wsSaved').textContent='All changes saved';
+    dirty=false;
+    if(res&&res.readonly){$('wsSaved').textContent='Read-only host — not saved';toast('Saved in this tab only: the server disk is read-only.');return}
+    if(notify)setSaved('Saved '+new Date().toLocaleTimeString());else $('wsSaved').textContent='All changes saved';
   }catch(e){$('wsSaved').textContent=e.message;toast(e.message)}
 }
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});

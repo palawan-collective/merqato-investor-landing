@@ -7,9 +7,19 @@ module.exports = function createWorkspace(ROOT) {
   const DIR = path.join(ROOT, 'data');
   const DATA = path.join(DIR, 'workspace.json');
   const SALT_FILE = path.join(DIR, 'workspace.salt');
-  fs.mkdirSync(DIR, { recursive: true });
-  if (!fs.existsSync(SALT_FILE)) fs.writeFileSync(SALT_FILE, crypto.randomBytes(32), { flag: 'wx' });
-  const SALT = fs.readFileSync(SALT_FILE);
+  // Serverless hosts (Vercel) ship a read-only bundle: never crash on mkdir, and
+  // fall back to an in-memory salt so links still encrypt within a warm instance.
+  let writable = true;
+  let salt = null;
+  try {
+    fs.mkdirSync(DIR, { recursive: true });
+    if (!fs.existsSync(SALT_FILE)) fs.writeFileSync(SALT_FILE, crypto.randomBytes(32), { flag: 'wx' });
+    salt = fs.readFileSync(SALT_FILE);
+  } catch {
+    writable = false;
+    salt = process.env.WORKSPACE_SALT ? Buffer.from(process.env.WORKSPACE_SALT, 'utf8') : crypto.createHash('sha256').update('readonly-' + (process.env.ADMIN_PASSWORD || 'no-password')).digest();
+  }
+  const SALT = salt;
   const KEY = crypto.scryptSync(process.env.ADMIN_PASSWORD || 'mq-local-preview-only', SALT, 32);
 
   const defaults = () => ({
@@ -34,8 +44,14 @@ module.exports = function createWorkspace(ROOT) {
     if (Array.isArray(data.projects)) data.projects = cleanProjects(data.projects);
     if (Array.isArray(data.comments)) data.comments = cleanComments(data.comments);
     data.updated = new Date().toISOString();
-    fs.writeFileSync(DATA + '.tmp', JSON.stringify(data, null, 2));
-    fs.renameSync(DATA + '.tmp', DATA);
+    if (!writable) return; // read-only host: keep serving, skip persistence
+    try {
+      fs.writeFileSync(DATA + '.tmp', JSON.stringify(data, null, 2));
+      fs.renameSync(DATA + '.tmp', DATA);
+    } catch (err) {
+      writable = false;
+      console.warn('Workspace is running without a writable disk:', err.message);
+    }
   };
 
   const encrypt = (plain) => {
@@ -279,5 +295,5 @@ ${closed.length ? `<h3 class="sub" style="margin-top:30px">Completed · ${closed
 <footer>${esc(b.tagline || '')} · Private project folder · <a class="inline" href="/workspace">Workstation</a></footer></div></body></html>`;
   };
 
-  return { load, save, encrypt, decrypt, publicState, renderProject, DATA };
+  return { load, save, encrypt, decrypt, publicState, renderProject, DATA, isWritable: () => writable };
 };
