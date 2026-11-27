@@ -102,6 +102,45 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .ws-toast{position:fixed;right:22px;bottom:22px;background:#151515;color:#fff;padding:11px 15px;border-radius:8px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;z-index:50}
 .ws-toast.show{opacity:1;transform:none}
 .ws-stack{display:flex;flex-direction:column;gap:16px}
+
+/* ---- project folder gallery ---- */
+.ws-shotgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ws-shot{border:1px solid var(--ws-line);border-radius:10px;overflow:hidden;background:#fff;min-width:0}
+.ws-shot .ws-shot-media{aspect-ratio:16/10;background:#e9e5de;display:block}
+.ws-shot img,.ws-shot video{width:100%;height:100%;object-fit:cover;display:block}
+.ws-shot .ws-shot-cap{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:7px 9px;font-size:11px;color:var(--ws-sub);border-top:1px solid var(--ws-line);overflow-wrap:anywhere}
+.ws-shot .ws-shot-cap button{flex:0 0 auto}
+.ws-shot.is-video .ws-shot-media{position:relative}
+.ws-hero{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--ws-line);background:#e9e5de}
+.ws-hero img,.ws-hero video{width:100%;max-height:340px;object-fit:cover;display:block}
+.ws-lightbox{position:fixed;inset:0;background:rgba(8,8,8,.92);display:grid;place-items:center;z-index:80;padding:24px}
+.ws-lightbox img,.ws-lightbox video{max-width:96vw;max-height:88vh;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.ws-lightbox button{position:fixed;top:18px;right:20px;border:0;border-radius:8px;background:#fff;color:#111;font-weight:800;padding:9px 14px;cursor:pointer}
+
+/* ---- visual dashboard board ---- */
+.ws-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.ws-tile{border:1px solid var(--ws-line);border-radius:12px;overflow:hidden;background:#fff;text-align:left;padding:0;display:flex;flex-direction:column;transition:transform .16s,box-shadow .16s,border-color .16s;min-width:0}
+.ws-tile:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(20,20,20,.10);border-color:var(--ws-red)}
+.ws-tile-media{position:relative;aspect-ratio:16/10;background:#e9e5de;overflow:hidden;flex:0 0 auto}
+.ws-tile-media img,.ws-tile-media video{width:100%;height:100%;object-fit:cover;display:block}
+.ws-tile-empty{width:100%;height:100%;display:grid;place-items:center;color:#9a948a;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;background:linear-gradient(135deg,#eee9e1,#e2ddd4)}
+.ws-tile-count{position:absolute;right:7px;bottom:7px;background:rgba(15,15,15,.78);color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:99px}
+.ws-tile-play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.ws-tile-play span{width:38px;height:38px;border-radius:50%;background:rgba(15,15,15,.65);color:#fff;display:grid;place-items:center;font-size:13px;padding-left:2px}
+.ws-tile-body{padding:12px 13px 13px;display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}
+.ws-tile-body h3{margin:0;font-size:15px;letter-spacing:-.02em;overflow-wrap:anywhere}
+.ws-tile-meta{font-size:11px;color:var(--ws-sub);overflow-wrap:anywhere}
+.ws-tile-flags{display:flex;gap:5px;flex-wrap:wrap}
+.ws-tile-foot{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-top:auto;padding-top:8px;border-top:1px solid var(--ws-line);font-size:11px}
+.ws-tile-foot .ws-muted{font-size:11px}
+.ws-tile.done .ws-tile-media::after{content:"";position:absolute;inset:0;background:rgba(23,122,79,.10)}
+.ws-filter{border:1px solid var(--ws-line);background:#fff;border-radius:99px;padding:5px 11px;font-size:11px;font-weight:800;white-space:nowrap}
+.ws-filter.on{background:var(--ws-ink);border-color:var(--ws-ink);color:#fff}
+.ws-idea-card{border:1px dashed var(--ws-line);border-radius:10px;padding:11px;background:var(--ws-soft)}
+.ws-idea-card h3{font-size:13px;margin:0 0 4px}
+.ws-idea-card p{margin:0;font-size:12px;color:var(--ws-sub)}
+@media(max-width:620px){.ws-board{grid-template-columns:1fr}}
+
 /* --- project folder tools --- */
 .ws-linkrow{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,1.5fr) auto;gap:8px;align-items:center;margin-bottom:8px}
 .ws-linkrow input,.ws-linkrow select{width:100%;border:1px solid #d3cec6;border-radius:6px;padding:7px 8px;background:#fff;font-size:12px;min-width:0}
@@ -180,22 +219,33 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 
 <section class="ws-view active" id="view-dashboard">
   <div class="ws-stats">
-    <div class="ws-stat" data-goto="projects"><div class="ws-label">Active projects</div><div class="ws-num" id="stProjects">0</div><div class="ws-bar"><span id="barProjects" style="width:0%"></span></div></div>
-    <div class="ws-stat" data-goto="ideas"><div class="ws-label">Ideas</div><div class="ws-num" id="stIdeas">0</div><div class="ws-bar"><span id="barIdeas" style="width:0%"></span></div></div>
-    <div class="ws-stat" data-goto="files"><div class="ws-label">Files in kit</div><div class="ws-num" id="stFiles">0</div><div class="ws-bar"><span id="barFiles" style="width:0%"></span></div></div>
-    <div class="ws-stat" data-goto="links"><div class="ws-label">Quick links</div><div class="ws-num" id="stLinks">0</div><div class="ws-bar"><span id="barLinks" style="width:0%"></span></div></div>
+    <div class="ws-stat" data-goto="projects"><div class="ws-label">All projects</div><div class="ws-num" id="stProjects">0</div><div class="ws-bar"><span id="barProjects" style="width:0%"></span></div><div class="ws-muted" id="stProjectsSub">&nbsp;</div></div>
+    <div class="ws-stat" data-goto="projects"><div class="ws-label">Launched</div><div class="ws-num" id="stLaunched">0</div><div class="ws-bar"><span id="barLaunched" style="width:0%"></span></div><div class="ws-muted" id="stLaunchedSub">live for clients</div></div>
+    <div class="ws-stat" data-goto="activity"><div class="ws-label">Open items</div><div class="ws-num" id="stOpen">0</div><div class="ws-bar"><span id="barOpen" style="width:0%"></span></div><div class="ws-muted" id="stOpenSub">&nbsp;</div></div>
+    <div class="ws-stat" data-goto="ideas"><div class="ws-label">Ideas</div><div class="ws-num" id="stIdeas">0</div><div class="ws-bar"><span id="barIdeas" style="width:0%"></span></div><div class="ws-muted">concepts &amp; plans</div></div>
   </div>
-  <div class="ws-two">
-    <div class="ws-card">
-      <div class="ws-between"><h2>Working now</h2><button class="ws-btn small" data-goto="projects">+ Add project</button></div>
-      <div id="dashProjects" class="ws-list"></div>
+
+  <div class="ws-card" style="padding:16px 18px;margin-bottom:16px">
+    <div class="ws-between" style="align-items:center">
+      <div><h2 style="margin:0">Visual board</h2><p class="ws-muted" style="margin:3px 0 0">Everything we are building, latest work first.</p></div>
+      <div class="ws-row" id="dashFilters"></div>
     </div>
-    <div class="ws-card"><div class="ws-between"><h2>Recent activity</h2><button class="ws-btn small" data-goto="activity">All notes</button></div><div id="dashActivity" class="ws-feed"></div></div>
   </div>
-  <div class="ws-three" style="margin-top:16px">
-    <div class="ws-card"><h2>Next actions</h2><button class="ws-action" data-goto="projects"><span class="ws-step">01</span><span>Update a project page</span><span>→</span></button><button class="ws-action" data-goto="files"><span class="ws-step">02</span><span>Upload brand guidelines</span><span>→</span></button><button class="ws-action" data-goto="links"><span class="ws-step">03</span><span>Save a work link</span><span>→</span></button><button class="ws-action" data-goto="activity"><span class="ws-step">04</span><span>Leave a note for your partner</span><span>→</span></button></div>
-    <div class="ws-card"><h2>Ideas in the pipeline</h2><div id="dashIdeas" class="ws-list"></div></div>
+
+  <div id="dashBoard" class="ws-board"></div>
+
+  <div class="ws-two" style="margin-top:16px">
+    <div class="ws-card"><div class="ws-between"><h2>Recent activity</h2><button class="ws-btn small" data-goto="activity">All notes</button></div><div id="dashActivity" class="ws-feed"></div></div>
+    <div class="ws-card"><div class="ws-between"><h2>Ideas in the pipeline</h2><button class="ws-btn small" data-goto="ideas">Capture idea</button></div><div id="dashIdeas" class="ws-list"></div></div>
+  </div>
+
+  <div class="ws-two" style="margin-top:16px">
     <div class="ws-card"><div class="ws-between"><h2>Quick access</h2><button class="ws-btn small" data-goto="links">Manage</button></div><div id="dashLinks" class="ws-chiprow"></div></div>
+    <div class="ws-card"><h2>Next actions</h2>
+      <button class="ws-action" data-goto="projects"><span class="ws-step">01</span><span>Open a project folder</span><span>→</span></button>
+      <button class="ws-action" data-goto="files"><span class="ws-step">02</span><span>Upload brand guidelines or screenshots</span><span>→</span></button>
+      <button class="ws-action" data-goto="activity"><span class="ws-step">03</span><span>Leave a note for your partner</span><span>→</span></button>
+    </div>
   </div>
 </section>
 
@@ -357,16 +407,70 @@ function refreshSelects(){
   scope.innerHTML='<option value="general">General</option>'+S.projects.map(p=>`<option value="project:${esc(p.id)}">Project: ${esc(p.name)}</option>`).join('')+S.ideas.map(i=>`<option value="idea:${esc(i.id)}">Idea: ${esc(i.title)}</option>`).join('');
   if(cur)scope.value=cur;
 }
+let dashFilter='all';
+function projectCover(p){
+  const img=(p.media||[]).find(m=>m.type==='image');
+  if(img)return img.url;
+  if(p.image)return p.image;
+  return '';
+}
+function projectVideo(p){const v=(p.media||[]).find(m=>m.type==='video');return v?v.url:''}
+function dashVisible(){
+  const q=matches;
+  let list=S.projects.filter(p=>q(p.name+' '+(p.client||'')+' '+(p.tags||[]).join(' ')));
+  if(dashFilter==='launched')list=list.filter(p=>p.status==='Launched');
+  if(dashFilter==='building')list=list.filter(p=>p.status!=='Launched'&&p.status!=='On hold');
+  if(dashFilter==='hold')list=list.filter(p=>p.status==='On hold');
+  return list;
+}
 function renderDashboard(){
-  const active=S.projects.filter(p=>p.status!=='Launched'&&p.status!=='On hold');
-  $('stProjects').textContent=active.length;$('stIdeas').textContent=S.ideas.length;$('stFiles').textContent=S.files.length;$('stLinks').textContent=S.links.length;
-  $('navProjects').textContent=S.projects.length;$('navIdeas').textContent=S.ideas.length;$('navFiles').textContent=S.files.length;
+  const all=S.projects;
+  const launched=all.filter(p=>p.status==='Launched');
+  const open=S.comments.filter(c=>c.scope&&c.scope.type==='project'&&!c.done);
+  $('stProjects').textContent=all.length;
+  $('stLaunched').textContent=launched.length;
+  $('stOpen').textContent=open.length;
+  $('stIdeas').textContent=S.ideas.length;
+  const building=all.filter(p=>p.status!=='Launched'&&p.status!=='On hold');
+  $('stProjectsSub').textContent=building.length+' building now';
+  $('stLaunchedSub').textContent=launched.length?'live for clients':'none yet';
+  $('stOpenSub').textContent=open.length?'need a decision':'all clear';
+  [['barProjects',all.length],['barLaunched',launched.length],['barOpen',open.length],['barIdeas',S.ideas.length]].forEach(([id,n])=>$(id).style.width=Math.min(100,n*12)+'%');
+  $('navProjects').textContent=all.length;$('navIdeas').textContent=S.ideas.length;$('navFiles').textContent=S.files.length;
   $('navLinks').textContent=S.links.length;$('navComments').textContent=S.comments.length;
-  [['barProjects',active.length],['barIdeas',S.ideas.length],['barFiles',S.files.length],['barLinks',S.links.length]].forEach(([id,n])=>$(id).style.width=Math.min(100,n*12)+'%');
-  $('dashProjects').innerHTML=active.filter(p=>matches(p.name+' '+p.client+' '+(p.tags||[]).join(' '))).slice(0,5).map(p=>`<div class="ws-proj" data-editproject="${esc(p.id)}" role="button" tabindex="0"><div class="ws-between"><h3>${esc(p.name)}</h3><div class="ws-row">${prioPill(p.priority)}${statusPill(p.status)}</div></div><div class="ws-muted">${esc(p.client||'MerQato Digital')} · /p/${esc(p.slug)}${p.due?' · due '+esc(p.due):''}</div><p>${esc((p.description||'').slice(0,150))}</p><div class="ws-row"><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button></div></div>`).join('')||'<div class="ws-empty">No active projects yet.<br><button class="ws-btn small" data-goto="projects">Add the first project</button></div>';
-  $('dashActivity').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).slice(0,5).map(c=>`<div class="ws-feeditem"><div class="ws-muted">${esc(c.author||'Partner')} · ${date(c.created)}</div><p>${esc(c.text)}</p></div>`).join('')||'<div class="ws-empty">No notes yet.<br><button class="ws-btn small" data-goto="activity">Leave the first note</button></div>';
+
+  // filters
+  const f=[['all','All '+all.length],['building','Building '+building.length],['launched','Launched '+launched.length],['hold','On hold '+all.filter(p=>p.status==='On hold').length]];
+  $('dashFilters').innerHTML=f.map(([k,label])=>`<button class="ws-filter${dashFilter===k?' on':''}" data-dashfilter="${k}">${esc(label)}</button>`).join('');
+
+  // visual board
+  const list=dashVisible();
+  $('dashBoard').innerHTML=list.map(p=>{
+    const cover=projectCover(p),video=projectVideo(p);
+    const mediaN=(p.media||[]).length,openN=threadFor(p.id).filter(c=>!c.done).length;
+    const live=(p.links||[]).find(l=>l.kind==='vercel')||(p.links||[]).find(l=>l.kind==='preview');
+    const media=video&&!cover
+      ? `<video src="${esc(video)}" muted playsinline preload="metadata"></video><div class="ws-tile-play"><span>▶</span></div>`
+      : cover
+        ? `<img src="${esc(cover)}" alt="${esc(p.name)}" loading="lazy">`
+        : `<div class="ws-tile-empty">No visuals yet</div>`;
+    return `<button class="ws-tile${p.status==='Launched'?' done':''}" data-openfolder="${esc(p.id)}">
+      <div class="ws-tile-media">${media}${mediaN?`<span class="ws-tile-count">${mediaN} visual${mediaN===1?'':'s'}</span>`:''}</div>
+      <div class="ws-tile-body">
+        <div class="ws-tile-flags">${prioPill(p.priority)}${statusPill(p.status)}</div>
+        <h3>${esc(p.name)}</h3>
+        <div class="ws-tile-meta">${esc(p.client||'MerQato Digital')}${p.due?' · due '+esc(p.due):''}</div>
+        <div class="ws-tile-meta">${esc((p.description||'').slice(0,95))}${(p.description||'').length>95?'…':''}</div>
+        <div class="ws-tile-foot">
+          <span class="ws-muted">${openN} open · ${mediaN} media</span>
+          <span class="ws-muted">${live?'Live ↗':(p.status==='Launched'?'Launched':'Open folder')}</span>
+        </div>
+      </div></button>`;
+  }).join('')||`<div class="ws-empty" style="grid-column:1/-1">No projects ${dashFilter==='all'?'yet':'in this filter'}.<br><button class="ws-btn small" data-goto="projects">Add a project</button></div>`;
+
+  $('dashActivity').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).slice(0,5).map(c=>`<div class="ws-feeditem"><div class="ws-muted">${esc(c.author||'Partner')} · ${date(c.created)} · ${esc(c.priority||'Medium')}</div><p>${esc(c.text)}</p></div>`).join('')||'<div class="ws-empty">No notes yet.<br><button class="ws-btn small" data-goto="activity">Leave the first note</button></div>';
   $('dashLinks').innerHTML=S.links.filter(l=>matches(l.title+' '+l.url)).slice(0,8).map(l=>`<a class="ws-chip" href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(l.url)}">${esc(l.title)} ↗</a>`).join('')||'<div class="ws-empty">No saved links yet.<br><button class="ws-btn small" data-goto="links">Add a quick link</button></div>';
-  $('dashIdeas').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).slice(0,4).map(i=>`<div class="ws-item"><div class="ws-between"><h3>${esc(i.title)}</h3><span class="ws-pill blue">${esc(i.status||'New')}</span></div></div>`).join('')||'<div class="ws-empty">No ideas yet.<br><button class="ws-btn small" data-goto="ideas">Capture the first idea</button></div>';
+  $('dashIdeas').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).slice(0,4).map(i=>`<div class="ws-idea-card"><div class="ws-between"><h3>${esc(i.title)}</h3><span class="ws-pill blue">${esc(i.status||'New')}</span></div><p>${esc((i.description||'').slice(0,90))}</p></div>`).join('')||'<div class="ws-empty">No ideas yet.<br><button class="ws-btn small" data-goto="ideas">Capture the first idea</button></div>';
   $('wsDate').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 }
 function prioPill(p){return `<span class="ws-prio ${esc(p||'Medium')}">${esc(p||'Medium')}</span>`}
@@ -436,7 +540,11 @@ function renderFolder(){
           ${p.notes?`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:16px 0 5px">Internal notes</h4><div class="ws-muted" style="white-space:pre-wrap;font-size:13px;color:#3d3933">${esc(p.notes)}</div>`:''}
           <div class="ws-chiprow" style="margin-top:12px">${(p.tags||[]).map(t=>`<span class="ws-chip">${esc(t)}</span>`).join('')}</div>
         </div>
-        <div>${cover?`<img src="${esc(cover.url)}" alt="${esc(p.name)} cover" style="width:100%;border-radius:9px;border:1px solid var(--ws-line);display:block">`:'<div class="ws-empty">No cover image yet.</div>'}</div>
+        <div>${cover
+          ? `<div class="ws-hero"><img src="${esc(cover.url)}" alt="${esc(p.name)} cover" data-lightbox="${esc(cover.url)}" style="cursor:zoom-in"></div>`
+          : (p.media||[]).length?`<div class="ws-empty">No still image — this project has video only.</div>`:'<div class="ws-empty">No cover image yet. <button class="ws-btn small" data-editproject="'+esc(p.id)+'">Add visuals</button></div>'}
+          ${(p.media||[]).length>1?`<div class="ws-shotgrid" style="margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(88px,1fr))">${(p.media||[]).slice(0,6).map(m=>`<div class="ws-shot" style="border-radius:7px"><div class="ws-shot-media" style="aspect-ratio:1/1">${m.type==='video'?`<video src="${esc(m.url)}" muted preload="metadata"></video>`:`<img src="${esc(m.url)}" alt="" loading="lazy" data-lightbox="${esc(m.url)}" style="cursor:zoom-in">`}</div></div>`).join('')}</div>`:''}
+        </div>
       </div>
       <hr class="ws-hr">
       <h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Where this project lives</h4>
@@ -446,7 +554,14 @@ function renderFolder(){
     body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Code, deploy and working links</h4><div class="ws-chiprow">${linkCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Manage links</button>`;
   }
   if(folderTab==='media'){
-    body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Screens, shots and video from devices</h4><div class="ws-gallery">${mediaCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Add images or video</button>`;
+    const shots=(p.media||[]).map((m,i)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}">
+      <div class="ws-shot-media">${m.type==='video'
+        ? `<video src="${esc(m.url)}" controls preload="metadata" playsinline></video>`
+        : `<img src="${esc(m.url)}" alt="${esc(m.title||m.name||p.name+' image '+(i+1))}" loading="lazy" data-lightbox="${esc(m.url)}" style="cursor:zoom-in">`}</div>
+      <figcaption class="ws-shot-cap"><span>${esc(m.title||m.name||(m.type==='video'?'Video':'Image '+(i+1)))}</span><button class="ws-btn small" data-mediadel-project="${esc(p.id)}|${esc(m.id)}">Remove</button></figcaption></figure>`).join('');
+    body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Every image and video for this project (${(p.media||[]).length})</h4>
+      <div class="ws-shotgrid">${shots||'<div class="ws-empty" style="grid-column:1/-1">No visuals yet. Add screenshots, photos or a video.</div>'}</div>
+      <hr class="ws-hr"><div class="ws-row"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Add images or video</button><span class="ws-muted">Images open full size when clicked.</span></div>`;
   }
   if(folderTab==='thread'){
     body.innerHTML=`
@@ -510,6 +625,32 @@ function renderBrandForm(){
 function renderAll(){refreshSelects();renderDashboard();renderProjects();renderIdeas();renderFiles();renderLinks();renderComments();renderBrandForm();if(openFolder)renderFolder()}
 $('wsNav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)go(b.dataset.view)});
 $('wsSearch').addEventListener('input',renderAll);
+document.addEventListener('click',async e=>{
+  const z=e.target.closest('[data-lightbox]');
+  if(z){
+    const url=z.dataset.lightbox;
+    const box=document.createElement('div');
+    box.className='ws-lightbox';
+    box.innerHTML=`<button type="button">Close ✕</button>${/\.(mp4|webm|mov)$/i.test(url)?`<video src="${esc(url)}" controls autoplay playsinline></video>`:`<img src="${esc(url)}" alt="Preview">`}`;
+    box.addEventListener('click',ev=>{if(ev.target===box||ev.target.tagName==='BUTTON')box.remove()});
+    document.body.appendChild(box);
+    return;
+  }
+  const rm=e.target.closest('[data-mediadel-project]');
+  if(rm){
+    const [pid,mid]=rm.dataset.mediadelProject.split('|');
+    if(!confirm('Remove this from the project?'))return;
+    const p=S.projects.find(x=>x.id===pid);
+    if(!p)return;
+    p.media=(p.media||[]).filter(m=>m.id!==mid);
+    await save(true);renderAll();toast('Removed');
+    return;
+  }
+});
+document.addEventListener('click',e=>{
+  const f=e.target.closest('[data-dashfilter]');
+  if(f){dashFilter=f.dataset.dashfilter;renderDashboard();return}
+});
 document.addEventListener('change',async e=>{
   const el=e.target;
   if(el.dataset && el.dataset.entryprio){
