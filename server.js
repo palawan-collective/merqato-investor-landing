@@ -8,16 +8,13 @@ const BASE=fs.readFileSync(path.join(ROOT,'public','index.html'),'utf8');
 const WS=require('./workspace')(ROOT);
 const DATA=path.join(ROOT,'data','site.json'),UPLOADS=path.join(ROOT,'uploads');
 try{fs.mkdirSync(path.dirname(DATA),{recursive:true});fs.mkdirSync(UPLOADS,{recursive:true})}catch(err){console.warn('No writable disk — running in read-only mode:',err.message)}
-// The public site always renders. Only the private workstation needs a password.
-const HAS_PASSWORD=!!process.env.ADMIN_PASSWORD&&process.env.ADMIN_PASSWORD.length>=12;
-const NO_PASSWORD=!HAS_PASSWORD;
-const PREVIEW_MODE=process.env.MQ_LOCAL_PREVIEW==='1'&&process.env.NODE_ENV!=='production';
-const PASSWORD=HAS_PASSWORD?process.env.ADMIN_PASSWORD:null;
-// Local dev with no password: workstation is open, but only when running locally.
-const DEV_OPEN=PREVIEW_MODE&&NO_PASSWORD;
-if(DEV_OPEN)console.warn('MQ_LOCAL_PREVIEW=1 with no ADMIN_PASSWORD — workstation is open locally. Never use this in production.');
-else if(!process.env.ADMIN_PASSWORD)console.warn('ADMIN_PASSWORD is not set. The public site works; /workspace and /admin are locked until a password of 12+ characters is configured.');
-else if(NO_PASSWORD)console.warn('ADMIN_PASSWORD is shorter than 12 characters and was ignored. /workspace and /admin stay locked.');
+// This is a simple site: it runs with no configuration at all.
+// ADMIN_PASSWORD is optional. If you set it, the workstation asks for it.
+// If you don't, the workstation is simply open.
+const PASSWORD=process.env.ADMIN_PASSWORD&&process.env.ADMIN_PASSWORD.length>=8?process.env.ADMIN_PASSWORD:null;
+const LOCKED=!!PASSWORD;
+if(LOCKED)console.log('Workstation password is set — /workspace asks for it.');
+else console.log('No ADMIN_PASSWORD set — /workspace is open.');
 const SESSION_KEY=crypto.randomBytes(32), sessions=new Map();
 const jsonHeaders={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
 const readState=()=>{try{return JSON.parse(fs.readFileSync(DATA,'utf8'))}catch{return {main:'',nav:'',css:''}}};
@@ -25,7 +22,7 @@ const send=(res,status,obj)=>{res.writeHead(status,jsonHeaders);res.end(JSON.str
 const readonlyNote=()=>WS.isWritable()?{}:{readonly:true,warning:'This deployment has a read-only disk, so the change was not persisted. Run on a host with a volume for permanent saves.'};
 const escapeHTML=(s)=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const cookie=(req)=>Object.fromEntries((req.headers.cookie||'').split(';').map(x=>{let i=x.indexOf('=');return i<0?['','']:[x.slice(0,i).trim(),x.slice(i+1)]}));
-const auth=(req)=>{if(DEV_OPEN)return true;if(NO_PASSWORD)return false;const token=cookie(req).mq_session;return !!(token&&sessions.get(token)>Date.now())};
+const auth=(req)=>{if(!LOCKED)return true;const token=cookie(req).mq_session;return !!(token&&sessions.get(token)>Date.now())};
 const body=(req,limit=20e6)=>new Promise((resolve,reject)=>{let chunks=[],size=0;req.on('data',c=>{size+=c.length;if(size>limit){reject(new Error('Too large'));req.destroy()}else chunks.push(c)});req.on('end',()=>resolve(Buffer.concat(chunks)));req.on('error',reject)});
 function rejectDangerous(s){return /<\s*(script|iframe|object|embed|base)\b/i.test(s)||/\bon\w+\s*=/i.test(s)||/javascript\s*:/i.test(s)}
 function render(){const d=readState();let h=BASE;
@@ -40,7 +37,7 @@ try{
 const u=new URL(req.url,'http://localhost'),pathname=decodeURIComponent(u.pathname);
 if(pathname==='/api/login'&&req.method==='POST'){
 
- if(!HAS_PASSWORD)return send(res,503,{error:'No admin password is configured for this deployment yet.'});
+ if(!LOCKED)return send(res,200,{ok:true});
  let val=JSON.parse((await body(req,10000)).toString());const a=crypto.createHash('sha256').update(String(val.password||'')).digest(),b=crypto.createHash('sha256').update(PASSWORD).digest();
  if(!crypto.timingSafeEqual(a,b))return send(res,401,{error:'Wrong password'});
  const token=crypto.randomBytes(32).toString('hex');sessions.set(token,Date.now()+86400000);
@@ -48,7 +45,8 @@ if(pathname==='/api/login'&&req.method==='POST'){
  return send(res,200,{ok:true});
 }
 if(pathname==='/api/logout'&&req.method==='POST'){const t=cookie(req).mq_session;sessions.delete(t);res.setHeader('Set-Cookie','mq_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');return send(res,200,{ok:true})}
-if(pathname==='/api/me')return send(res,200,{authenticated:auth(req),needsPassword:!HAS_PASSWORD,readonly:!WS.isWritable()});
+if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:'2026-11-27-project-folders',node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
+if(pathname==='/api/me')return send(res,200,{authenticated:auth(req),locked:LOCKED,readonly:!WS.isWritable()});
 if(pathname==='/api/site'&&req.method==='GET'){if(!auth(req))return send(res,401,{error:'Unauthorized'});return send(res,200,readState())}
 if(pathname==='/api/site'&&req.method==='PUT'){
  if(!auth(req))return send(res,401,{error:'Unauthorized'});

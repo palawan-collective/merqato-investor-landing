@@ -16,9 +16,9 @@ Open `/admin` — it redirects to the partner workstation at `/workspace`; the p
 - **Partner discussion per folder:** every project folder has a Discussion tab. Comments show who wrote them, the **date raised**, the **priority**, any image/video attachments, and a **Mark complete** action that stamps the completion date and author. Completed items move to a green "Completed" list and can be reopened. The same thread is rendered, read-only, on `/p/<slug>` so partners see exactly what was raised, when, and what is done. Comment status and priority are changed through `POST /api/workspace/comment/status` so both partners always see the latest state after a refresh.
 - **Ideas, comments and files:** idea board with statuses, threaded-by-scope comments with image/URL attachments, and a file library for brand guidelines, logos and reference files (PDF, DOCX, ZIP, TXT, CSV, images and video).
 - **Brand kit:** editable brand name, tagline, colours, fonts, logo and written guidelines. The colours and fonts style the generated project pages.
-- **Quick links:** URLs with optional username, notes and a password. Passwords are encrypted with AES-256-GCM using a key derived from `ADMIN_PASSWORD` (a local-only key in preview mode), are never returned in the link list, and are revealed only through an explicit authenticated request. Do not paste real credentials into chat or commits.
+- **Quick links:** URLs with optional username, notes and a password. Saved link passwords are encrypted at rest with AES-256-GCM and are never returned in the link list; they are revealed only through an explicit request. This is unrelated to logging in — the workstation itself needs no password. Do not paste real credentials into chat or commits.
 
-Workspace data lives in `data/workspace.json` with a random salt in `data/workspace.salt`. Both are gitignored; keep them together and back them up. In production set a strong `ADMIN_PASSWORD` before adding passwords, and put `/admin` and `/workspace` behind Cloudflare Access.
+Workspace data lives in `data/workspace.json` with a random salt in `data/workspace.salt`. Both are gitignored; keep them together and back them up. Put the site behind Cloudflare Access if it should not be public; no app password is needed.
 
 ## Media limits on the workstation
 
@@ -26,25 +26,35 @@ Uploads go through `POST /api/upload` and are written to `uploads/`. Images: PNG
 
 ## Run
 
-Requires Node.js 20+ and no npm dependencies.
-
-Local admin demo without a login screen (for a **trusted local environment only**):
+Requires Node.js 20+ and no npm dependencies. **Nothing to configure.**
 
 ```bash
-MQ_LOCAL_PREVIEW=1 node server.js
+node server.js
 ```
 
-Production:
+That starts the whole thing on port 3000:
 
-```bash
-ADMIN_PASSWORD='a-long-unique-secret' NODE_ENV=production node server.js
-```
+| Path | What it is |
+| --- | --- |
+| `/` | the investor landing page |
+| `/workspace` | the partner workstation (open by default) |
+| `/p/<slug>` | a project folder page |
+| `/admin/edit` | the secondary page editor |
+| `/health` | health check + build marker for Coolify |
 
-Open `/` for the site and `/admin` for the editor. On public deployments, restrict `/admin` via Cloudflare Access; do not enable `MQ_LOCAL_PREVIEW` in production. The project keeps password protection for the public backend to prevent arbitrary visitors changing content. Never share the admin password.
+### The password is optional
+
+`ADMIN_PASSWORD` is **not required**. Leave it unset and the workstation is simply open, which is fine while the site sits behind Cloudflare Access. If you later want the workstation to ask for a password, set `ADMIN_PASSWORD` to 8+ characters in the Coolify environment and it will start prompting.
+
+There is no login screen and no build step. If the site is not showing your changes, the deploy is not running this code — check `/health` and compare the `build` value.
 
 ## Coolify
 
-Deploy as a Node service on port 3000, set the above environment variables, and mount persistent volumes for `/app/data` and `/app/uploads`. Both directories must survive deploys. Back up both volumes securely. The storage backend is a local disk; if media traffic grows, migrate files to R2 or another object store.
+Deploy as a Node service on port 3000. No environment variables are required. The health check path is `/health`.
+
+Mount persistent volumes for `/app/data` and `/app/uploads`, otherwise saved projects and uploaded images disappear on every redeploy — that alone looks like "nothing changed". Back up both volumes. Storage is local disk; if media traffic grows, move files to R2 or another object store.
+
+If the Coolify app still serves the old page after a deploy, hit `/health` on the live domain. If it 404s or returns an old `build` value, Coolify is not running this container — rebuild it: **Coolify → your app → Deployments → Redeploy**, and confirm the container logs end with `MerQato site + admin at http://localhost:3000`.
 
 ## Notes
 
