@@ -47,6 +47,34 @@ That starts the whole thing on port 3000:
 
 There is no login screen, no password, and no build step — on `/workspace` or on `/admin/edit`. That is intentional while the site is being built. If you want it private later, put Cloudflare Access in front of the domain; do not add a password to the app.
 
+## Office agent
+
+`/workspace` has an **Office agent** tab, and its briefing also appears on the dashboard. It reads the workspace and reports:
+
+- what was **done yesterday** (completed items) and what was said but not closed
+- **plan for today**: overdue deadlines first, then work due within 7 days, then urgent open items
+- **deadlines** with day counts, **gone quiet** projects (10+ days without activity) and ideas (14+ days)
+- **tidy-up**: projects with no images, no links or no description; ideas with no links or thinking written down
+- **opportunities**: launched work worth writing up, high-priority ideas awaiting a decision, Drive links worth consolidating
+
+It runs in two modes:
+
+| Mode | Requirement | Behaviour |
+| --- | --- | --- |
+| Local | none | Deterministic analysis, no network, never invents facts |
+| OpenRouter | `OPENROUTER_API_KEY` | A free model rewrites the analysis as a ~120-word briefing |
+
+Set the key in Coolify under environment variables:
+
+```bash
+OPENROUTER_API_KEY=sk-or-v1-...        # from openrouter.ai/keys, free tier is fine
+OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct:free   # optional
+```
+
+Without a key the agent still works, labelled "Local analysis". If the key is wrong or the model is rate-limited, the API returns the local text with `aiError` noted — the page never breaks and the agent never invents a fact. Responses are cached for 15 minutes per workspace revision, and **Run again** forces a fresh call.
+
+Free models rate-limit aggressively. If the AI text stops appearing, that is the free tier, not a bug; the local briefing keeps working.
+
 ## Coolify
 
 Deploy as a Node service on port 3000. No environment variables are required. The health check path is `/health`.
