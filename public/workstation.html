@@ -31,6 +31,8 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .ws-navsep{font-size:9px;letter-spacing:.2em;color:#7f796f;font-weight:850;margin:16px 11px 4px}
 .ws-sidefoot{margin-top:auto;border-top:1px solid #333;padding-top:14px;display:flex;flex-direction:column;gap:8px}
 .ws-sidefoot button{border:1px solid #444;background:transparent;color:#ddd;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;text-align:left}
+.ws-navitem-quiet{color:#8e887f;font-weight:600;font-size:12px;opacity:.85}
+.ws-navitem-quiet:hover{color:#fff;background:#1d1d1d;opacity:1}
 .ws-sidefoot small{color:#8e887f;font-size:11px}
 .ws-main{min-width:0;display:flex;flex-direction:column}
 .ws-top{padding:28px 34px 20px;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--ws-line);background:#fff}
@@ -254,11 +256,10 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
     <button class="ws-navitem" data-view="links">Quick links <span class="ws-count" id="navLinks">0</span></button>
     <button class="ws-navitem" data-view="activity">Activity <span class="ws-count" id="navComments">0</span></button>
     <button class="ws-navitem" data-view="agent">Office agent <span class="ws-count" id="navAgent">●</span></button>
-    <div class="ws-navsep">SITE TOOLS</div>
-    <a class="ws-navitem" href="/admin/edit" rel="noopener">Page editor ↗</a>
-    <a class="ws-navitem" href="/" target="_blank" rel="noopener">View site ↗</a>
+    <div class="ws-navsep">RARELY USED</div>
+    <a class="ws-navitem ws-navitem-quiet" href="/admin/edit" rel="noopener">Edit site design ↗</a>
   </nav>
-  <div class="ws-sidefoot"><small>Partner workstation</small><small id="wsSaved">All changes saved</small></div>
+  <div class="ws-sidefoot"><a class="ws-navitem" href="/" target="_blank" rel="noopener" style="text-align:left">View site ↗</a><small id="wsSaved">All changes saved</small></div>
 </aside>
 
 <div class="ws-main">

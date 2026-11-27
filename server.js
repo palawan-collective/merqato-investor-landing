@@ -43,7 +43,7 @@ if(pathname==='/api/login'&&req.method==='POST'){
  return send(res,200,{ok:true});
 }
 if(pathname==='/api/logout'&&req.method==='POST'){const t=cookie(req).mq_session;sessions.delete(t);res.setHeader('Set-Cookie','mq_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');return send(res,200,{ok:true})}
-if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:'2026-11-27-mobile-nav',node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
+if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:'2026-11-27-admin-entry',node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
 if(pathname==='/api/me')return send(res,200,{authenticated:auth(req),locked:LOCKED,readonly:!WS.isWritable()});
 if(pathname==='/api/site'&&req.method==='GET'){if(!auth(req))return send(res,401,{error:'Unauthorized'});return send(res,200,readState())}
 if(pathname==='/api/site'&&req.method==='PUT'){
