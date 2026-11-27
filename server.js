@@ -4,6 +4,8 @@ const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
 const ROOT=__dirname, PORT=Number(process.env.PORT||3000);
+const VERSION='2026-11-27-v7';
+const STARTED=new Date().toISOString();
 const BASE=fs.readFileSync(path.join(ROOT,'public','index.html'),'utf8');
 const WS=require('./workspace')(ROOT);
 const AGENT=require('./agent.js');
@@ -43,7 +45,7 @@ if(pathname==='/api/login'&&req.method==='POST'){
  return send(res,200,{ok:true});
 }
 if(pathname==='/api/logout'&&req.method==='POST'){const t=cookie(req).mq_session;sessions.delete(t);res.setHeader('Set-Cookie','mq_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');return send(res,200,{ok:true})}
-if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:'2026-11-27-admin-entry',node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
+if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:VERSION,started:STARTED,cwd:ROOT,node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
 if(pathname==='/api/me')return send(res,200,{authenticated:auth(req),locked:LOCKED,readonly:!WS.isWritable()});
 if(pathname==='/api/site'&&req.method==='GET'){if(!auth(req))return send(res,401,{error:'Unauthorized'});return send(res,200,readState())}
 if(pathname==='/api/site'&&req.method==='PUT'){
@@ -162,7 +164,7 @@ if(pathname==='/api/workspace/link/reveal'&&req.method==='POST'){
  if(!l)return send(res,404,{error:'Link not found'});
  return send(res,200,{password:WS.decrypt(l.secret)});
 }
-if(pathname==='/workspace'||pathname==='/workspace/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','workstation.html')))}
+if(pathname==='/workspace'||pathname==='/workspace/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});const page=fs.readFileSync(path.join(ROOT,'public','workstation.html'),'utf8').replace('</head>','<meta name="mq-build" content="'+VERSION+'"></head>');return res.end(page)}
 if(pathname.startsWith('/p/')){const slug=pathname.slice(3).replace(/[^a-z0-9-]/gi,'').toLowerCase();const html=WS.renderProject(slug);if(!html)return send(res,404,{error:'Project not found'});res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(html)}
 if(pathname==='/admin'||pathname==='/admin/'){res.writeHead(302,{location:'/workspace','cache-control':'no-store'});return res.end()}
 if(pathname==='/admin/edit'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','admin.html')))}
