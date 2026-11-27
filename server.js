@@ -4,7 +4,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const crypto=require('node:crypto');
 const ROOT=__dirname, PORT=Number(process.env.PORT||3000);
-const VERSION='2026-11-27-v7';
+const VERSION='2026-11-27-v8';
 const STARTED=new Date().toISOString();
 const BASE=fs.readFileSync(path.join(ROOT,'public','index.html'),'utf8');
 const WS=require('./workspace')(ROOT);
@@ -18,6 +18,12 @@ const SESSION_KEY=crypto.randomBytes(32), sessions=new Map();
 const jsonHeaders={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
 const readState=()=>{try{return JSON.parse(fs.readFileSync(DATA,'utf8'))}catch{return {main:'',nav:'',css:''}}};
 const send=(res,status,obj)=>{res.writeHead(status,jsonHeaders);res.end(JSON.stringify(obj))};
+// Every page is generated fresh on each request, so nothing may be stored by the
+// browser, Cloudflare, or any proxy. Without this, a deploy ships but visitors keep
+// seeing yesterday's copy and blame the deploy. HTML is always no-store; uploads are
+// content-addressed filenames that never change, so they stay cacheable.
+const HTML_HEAD={'content-type':'text/html; charset=utf-8','cache-control':'no-store, no-cache, must-revalidate, max-age=0','pragma':'no-cache','expires':'0','x-frame-options':'SAMEORIGIN'};
+const page=(res,html,extra={})=>{res.writeHead(200,{...HTML_HEAD,...extra});res.end(html)};
 const agentCache=new Map();
 const readonlyNote=()=>WS.isWritable()?{}:{readonly:true,warning:'This deployment has a read-only disk, so the change was not persisted. Run on a host with a volume for permanent saves.'};
 const escapeHTML=(s)=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
@@ -164,11 +170,13 @@ if(pathname==='/api/workspace/link/reveal'&&req.method==='POST'){
  if(!l)return send(res,404,{error:'Link not found'});
  return send(res,200,{password:WS.decrypt(l.secret)});
 }
-if(pathname==='/workspace'||pathname==='/workspace/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});const page=fs.readFileSync(path.join(ROOT,'public','workstation.html'),'utf8').replace('</head>','<meta name="mq-build" content="'+VERSION+'"></head>');return res.end(page)}
-if(pathname.startsWith('/p/')){const slug=pathname.slice(3).replace(/[^a-z0-9-]/gi,'').toLowerCase();const html=WS.renderProject(slug);if(!html)return send(res,404,{error:'Project not found'});res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});return res.end(html)}
+if(pathname==='/workspace'||pathname==='/workspace/'){
+ const html=fs.readFileSync(path.join(ROOT,'public','workstation.html'),'utf8').replace('</head>','<meta name="mq-build" content="'+VERSION+'"></head>');
+ return page(res,html)}
+if(pathname.startsWith('/p/')){const slug=pathname.slice(3).replace(/[^a-z0-9-]/gi,'').toLowerCase();const html=WS.renderProject(slug);if(!html)return send(res,404,{error:'Project not found'});return page(res,html)}
 if(pathname==='/admin'||pathname==='/admin/'){res.writeHead(302,{location:'/workspace','cache-control':'no-store'});return res.end()}
-if(pathname==='/admin/edit'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(fs.readFileSync(path.join(ROOT,'public','admin.html')))}
-if(pathname==='/'||pathname==='/index.html'){res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store','x-frame-options':'SAMEORIGIN'});return res.end(render())}
+if(pathname==='/admin/edit'){return page(res,fs.readFileSync(path.join(ROOT,'public','admin.html')))}
+if(pathname==='/'||pathname==='/index.html'){return page(res,render())}
 return send(res,404,{error:'Not found'});
 }catch(err){console.error(err);if(!res.headersSent)send(res,500,{error:'Request failed'})}
 }).listen(PORT,'0.0.0.0',()=>console.log(`MerQato site + admin at http://localhost:${PORT} — admin /admin`));
