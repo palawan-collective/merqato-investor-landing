@@ -6,6 +6,7 @@ const crypto=require('node:crypto');
 const ROOT=__dirname, PORT=Number(process.env.PORT||3000);
 const BASE=fs.readFileSync(path.join(ROOT,'public','index.html'),'utf8');
 const WS=require('./workspace')(ROOT);
+const AGENT=require('./agent.js');
 const DATA=path.join(ROOT,'data','site.json'),UPLOADS=path.join(ROOT,'uploads');
 try{fs.mkdirSync(path.dirname(DATA),{recursive:true});fs.mkdirSync(UPLOADS,{recursive:true})}catch(err){console.warn('No writable disk — running in read-only mode:',err.message)}
 // No login. No password. The site and the workstation are open.
@@ -15,6 +16,7 @@ const SESSION_KEY=crypto.randomBytes(32), sessions=new Map();
 const jsonHeaders={'content-type':'application/json; charset=utf-8','cache-control':'no-store'};
 const readState=()=>{try{return JSON.parse(fs.readFileSync(DATA,'utf8'))}catch{return {main:'',nav:'',css:''}}};
 const send=(res,status,obj)=>{res.writeHead(status,jsonHeaders);res.end(JSON.stringify(obj))};
+const agentCache=new Map();
 const readonlyNote=()=>WS.isWritable()?{}:{readonly:true,warning:'This deployment has a read-only disk, so the change was not persisted. Run on a host with a volume for permanent saves.'};
 const escapeHTML=(s)=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
 const cookie=(req)=>Object.fromEntries((req.headers.cookie||'').split(';').map(x=>{let i=x.indexOf('=');return i<0?['','']:[x.slice(0,i).trim(),x.slice(i+1)]}));
@@ -41,7 +43,7 @@ if(pathname==='/api/login'&&req.method==='POST'){
  return send(res,200,{ok:true});
 }
 if(pathname==='/api/logout'&&req.method==='POST'){const t=cookie(req).mq_session;sessions.delete(t);res.setHeader('Set-Cookie','mq_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');return send(res,200,{ok:true})}
-if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:'2026-11-27-image-viewer',node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
+if(pathname==='/health'||pathname==='/api/health')return send(res,200,{ok:true,service:'merqato-investor-landing',build:'2026-11-27-office-agent',node:process.version,locked:LOCKED,uptime:Math.round(process.uptime())});
 if(pathname==='/api/me')return send(res,200,{authenticated:auth(req),locked:LOCKED,readonly:!WS.isWritable()});
 if(pathname==='/api/site'&&req.method==='GET'){if(!auth(req))return send(res,401,{error:'Unauthorized'});return send(res,200,readState())}
 if(pathname==='/api/site'&&req.method==='PUT'){
@@ -130,6 +132,29 @@ if(pathname==='/api/workspace/idea'&&req.method==='POST'){
  if(!v||typeof v.title!=='string'||!v.title.trim()||v.title.length>200)return send(res,400,{error:'Give the idea a short title'});
  const d=WS.load();d.ideas.unshift({id:crypto.randomBytes(6).toString('hex'),title:v.title.trim().slice(0,200),description:String(v.description||'').slice(0,3000),status:'New',created:new Date().toISOString()});
  WS.save(d);return send(res,200,{ok:true,...readonlyNote()});
+}
+if(pathname==='/api/agent'&&req.method==='GET'){
+ // Office agent: local analysis always; optional OpenRouter rewrite of the summary.
+ const d=WS.load();
+ const report=AGENT.analyse(d);
+ const key=process.env.OPENROUTER_API_KEY;
+ report.ai=(key?'configured':'off');
+ const wantModel=u.searchParams.get('ai')!=='0';
+ if(key&&wantModel){
+   const cacheKey='agent:'+d.updated+':'+(process.env.OPENROUTER_MODEL||'auto');
+   const cached=agentCache.get(cacheKey);
+   if(cached&&cached.expires>Date.now()){Object.assign(report,{mode:'ai',model:cached.model,summary:cached.text});}
+   else{
+     const ai=await AGENT.askOpenRouter(report,process.env.OPENROUTER_MODEL);
+     if(ai&&ai.text){
+       agentCache.set(cacheKey,{text:ai.text,model:ai.model,expires:Date.now()+15*60000});
+       Object.assign(report,{mode:'ai',model:ai.model,summary:ai.text});
+     }else{
+       Object.assign(report,{mode:'local',aiError:ai&&ai.error?ai.error:'unavailable'});
+     }
+   }
+ }
+ return send(res,200,report);
 }
 if(pathname==='/api/workspace/link/reveal'&&req.method==='POST'){
  if(!auth(req))return send(res,401,{error:'Unauthorized'});

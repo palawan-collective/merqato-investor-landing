@@ -217,6 +217,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
     <button class="ws-navitem" data-view="files">Files &amp; brand kit <span class="ws-count" id="navFiles">0</span></button>
     <button class="ws-navitem" data-view="links">Quick links <span class="ws-count" id="navLinks">0</span></button>
     <button class="ws-navitem" data-view="activity">Activity <span class="ws-count" id="navComments">0</span></button>
+    <button class="ws-navitem" data-view="agent">Office agent <span class="ws-count" id="navAgent">●</span></button>
     <div class="ws-navsep">SITE TOOLS</div>
     <a class="ws-navitem" href="/admin/edit" target="_blank" rel="noopener">Edit site ↗</a>
     <a class="ws-navitem" href="/" target="_blank" rel="noopener">View proposal ↗</a>
@@ -240,6 +241,15 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
     <div class="ws-stat" data-goto="ideas"><div class="ws-label">Ideas</div><div class="ws-num" id="stIdeas">0</div><div class="ws-bar"><span id="barIdeas" style="width:0%"></span></div><div class="ws-muted">concepts &amp; plans</div></div>
   </div>
 
+  <div class="ws-card" id="dashAgentCard" style="padding:16px 18px;margin-bottom:16px;background:#111;color:#f5f0e7;border-color:#111">
+    <div class="ws-between" style="align-items:center;gap:14px">
+      <div style="min-width:0;flex:1">
+        <div class="ws-eyebrow" style="color:#ff5a5f">OFFICE AGENT · LIVE</div>
+        <p id="dashAgentText" style="margin:7px 0 0;color:#fff;font-size:14px;line-height:1.55">Reading the workspace…</p>
+      </div>
+      <button class="ws-btn small" data-goto="agent" style="background:#fff;color:#111;border-color:#fff;flex:0 0 auto">Open agent</button>
+    </div>
+  </div>
   <div class="ws-card" style="padding:16px 18px;margin-bottom:16px">
     <div class="ws-between" style="align-items:center">
       <div><h2 style="margin:0">Visual board</h2><p class="ws-muted" style="margin:3px 0 0">Everything we are building, latest work first.</p></div>
@@ -261,6 +271,35 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
       <button class="ws-action" data-goto="files"><span class="ws-step">02</span><span>Upload brand guidelines or screenshots</span><span>→</span></button>
       <button class="ws-action" data-goto="activity"><span class="ws-step">03</span><span>Leave a note for your partner</span><span>→</span></button>
     </div>
+  </div>
+</section>
+
+<section class="ws-view" id="view-agent">
+  <div class="ws-card" style="background:#111;color:#f5f0e7;border-color:#111">
+    <div class="ws-between" style="align-items:flex-start">
+      <div>
+        <div class="ws-eyebrow" style="color:#ff5a5f">OFFICE AGENT</div>
+        <h2 style="font-size:24px;margin:8px 0 6px;color:#fff">What happened, what is due, what to tidy</h2>
+        <p class="ws-muted" style="color:#b9b2a8;margin:0;font-size:13px" id="agentMeta">Reading the workspace…</p>
+      </div>
+      <div class="ws-row"><button class="ws-btn small" id="agentRefresh" style="background:#fff;color:#111;border-color:#fff">Run again</button><button class="ws-btn small" id="agentCopy" style="background:transparent;color:#fff;border-color:#555">Copy briefing</button></div>
+    </div>
+    <p id="agentSummary" style="font-size:16px;line-height:1.6;margin:18px 0 0;color:#fff"></p>
+  </div>
+
+  <div class="ws-two" style="margin-top:16px">
+    <div class="ws-card"><h2>Done yesterday</h2><div id="agentYesterday" class="ws-list"></div></div>
+    <div class="ws-card"><h2>Plan for today</h2><div id="agentPlan" class="ws-list"></div></div>
+  </div>
+
+  <div class="ws-two" style="margin-top:16px">
+    <div class="ws-card"><h2>Tidy-up</h2><div id="agentTidy" class="ws-list"></div></div>
+    <div class="ws-card"><h2>Opportunities</h2><div id="agentOpps" class="ws-list"></div></div>
+  </div>
+
+  <div class="ws-two" style="margin-top:16px">
+    <div class="ws-card"><h2>Deadlines</h2><div id="agentDeadlines" class="ws-list"></div></div>
+    <div class="ws-card"><h2>Gone quiet</h2><div id="agentStale" class="ws-list"></div></div>
   </div>
 </section>
 
@@ -832,6 +871,75 @@ function renderBrandForm(){
   $('bPrimary').value=b.primary||'#111111';$('bAccent').value=b.accent||'#D6001C';$('bPaper').value=b.paper||'#EDE7D9';$('bInk').value=b.ink||'#111111';
   $('bDisplay').value=b.fonts?.display||'Anton';$('bBody').value=b.fonts?.body||'Inter';$('bGuidelines').value=b.guidelines||'';
 }
+// ---------------- office agent ----------------
+let agentReport=null, agentBusy=false;
+async function loadAgent(force){
+  if(agentBusy)return;
+  agentBusy=true;
+  const meta=$('agentMeta');
+  if(meta)meta.textContent=force?'Asking again…':'Reading the workspace…';
+  try{
+    const r=await http('/api/agent'+(force?'?ai=1':''));
+    agentReport=r;
+    paintAgent(r);
+  }catch(e){
+    if(meta)meta.textContent='Agent could not run: '+e.message;
+  }finally{agentBusy=false}
+}
+function relDate(iso){
+  const d=new Date(iso);if(isNaN(d))return '';
+  return d.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'});
+}
+function paintAgent(r){
+  const summary=(r.mode==='ai'&&r.summary)?r.summary:r.headline;
+  const s=summary||'';
+  const sum=$('agentSummary'); if(sum){sum.textContent=s}
+  const dash=$('dashAgentText'); if(dash){dash.textContent=s}
+  const meta=$('agentMeta');
+  if(meta){
+    const bits=[];
+    bits.push(r.mode==='ai'?('Written by '+String(r.model||'a free model').split('/').pop()):'Local analysis (no API key, nothing invented)');
+    bits.push(r.generatedAt?('updated '+relDate(r.generatedAt)):'');
+    if(r.aiError)bits.push('model unavailable: '+r.aiError);
+    bits.push(r.stats.projects+' projects · '+r.stats.ideas+' ideas · '+r.stats.openItems+' open');
+    meta.textContent=bits.filter(Boolean).join(' · ');
+  }
+  const y=$('agentYesterday');
+  if(y){
+    const rows=[...(r.didYesterday||[]).map(c=>`<div class="ws-item"><div class="ws-between"><strong>${esc(c.by)}</strong><span class="ws-muted">${esc(relDate(c.at))}</span></div><p>${esc(c.text)}</p></div>`),
+      ...(r.saidYesterday||[]).filter(c=>!(r.didYesterday||[]).some(d=>d.text===c.text)).map(c=>`<div class="ws-item" style="border-style:dashed"><div class="ws-between"><strong>${esc(c.by)}</strong><span class="ws-muted">${esc(c.priority)} · ${esc(relDate(c.at))}</span></div><p>${esc(c.text)}</p><div class="ws-muted">not marked complete</div></div>`)];
+    y.innerHTML=rows.join('')||'<div class="ws-empty">Nothing recorded yesterday.</div>';
+  }
+  const plan=$('agentPlan');
+  if(plan){
+    plan.innerHTML=(r.planToday||[]).map(p=>`<div class="ws-item"><div class="ws-row"><span class="ws-prio ${p.urgency==='overdue'?'Urgent':p.urgency==='soon'?'High':'Medium'}">${esc(p.urgency)}</span></div><p>${esc(p.text)}</p></div>`).join('')||'<div class="ws-empty">Nothing pressing. Good.</div>';
+  }
+  const tidy=$('agentTidy');
+  if(tidy){
+    tidy.innerHTML=(r.tidy||[]).map(t=>`<div class="ws-item"><div class="ws-between"><span class="ws-linkbadge">${esc(t.level)}</span>${t.kind==='project'?`<button class="ws-btn small" data-openfolder="${esc(t.id)}">Open</button>`:t.kind==='idea'?`<button class="ws-btn small" data-openidea="${esc(t.id)}">Open</button>`:''}</div><p>${esc(t.text)}</p></div>`).join('')||'<div class="ws-empty">Nothing to tidy. Neat.</div>';
+  }
+  const opp=$('agentOpps');
+  if(opp){opp.innerHTML=(r.opportunities||[]).map(o=>`<div class="ws-item"><p>${esc(o)}</p></div>`).join('')||'<div class="ws-empty">No suggestions right now.</div>'}
+  const dl=$('agentDeadlines');
+  if(dl){
+    const rows=[...(r.overdue||[]).map(d=>`<div class="ws-item" style="border-left:3px solid #b00020"><div class="ws-between"><strong>${esc(d.name)}</strong><span class="ws-prio Urgent">${Math.abs(d.days)}d overdue</span></div><div class="ws-muted">due ${esc(d.due)} · ${esc(d.status)}</div></div>`),
+      ...(r.dueSoon||[]).map(d=>`<div class="ws-item" style="border-left:3px solid #c47a00"><div class="ws-between"><strong>${esc(d.name)}</strong><span class="ws-prio High">${d.days===0?'today':'in '+d.days+'d'}</span></div><div class="ws-muted">due ${esc(d.due)} · ${esc(d.status)}</div></div>`)];
+    dl.innerHTML=rows.join('')||'<div class="ws-empty">No deadlines in the next week.</div>';
+  }
+  const st=$('agentStale');
+  if(st){
+    const rows=[...(r.stale||[]).map(x=>`<div class="ws-item"><div class="ws-between"><strong>${esc(x.name)}</strong><span class="ws-muted">${x.days}d quiet</span></div></div>`),
+      ...(r.quietIdeas||[]).map(x=>`<div class="ws-item" style="border-style:dashed"><div class="ws-between"><strong>${esc(x.title)}</strong><span class="ws-muted">idea · ${x.days}d quiet</span></div></div>`)];
+    st.innerHTML=rows.join('')||'<div class="ws-empty">Everything has recent activity.</div>';
+  }
+}
+$('agentRefresh').onclick=()=>loadAgent(true);
+$('agentCopy').onclick=async()=>{
+  const text=agentReport?((agentReport.mode==='ai'&&agentReport.summary)||agentReport.headline):'';
+  if(!text)return;
+  try{await navigator.clipboard.writeText(text);toast('Briefing copied')}catch{toast('Copy failed')}
+};
+
 function renderAll(){refreshSelects();renderDashboard();renderProjects();renderIdeas();renderFiles();renderLinks();renderComments();renderBrandForm();if(openFolder)renderFolder()}
 $('wsNav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)go(b.dataset.view)});
 $('wsSearch').addEventListener('input',renderAll);
