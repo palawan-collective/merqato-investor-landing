@@ -102,6 +102,42 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .ws-toast{position:fixed;right:22px;bottom:22px;background:#151515;color:#fff;padding:11px 15px;border-radius:8px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s;z-index:50}
 .ws-toast.show{opacity:1;transform:none}
 .ws-stack{display:flex;flex-direction:column;gap:16px}
+/* --- project folder tools --- */
+.ws-linkrow{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,1.5fr) auto;gap:8px;align-items:center;margin-bottom:8px}
+.ws-linkrow input,.ws-linkrow select{width:100%;border:1px solid #d3cec6;border-radius:6px;padding:7px 8px;background:#fff;font-size:12px;min-width:0}
+.ws-linkbadge{font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;border-radius:4px;padding:3px 6px;background:#f1eee8;color:#514c45;border:1px solid var(--ws-line)}
+.ws-linkbadge.github{background:#111;color:#fff;border-color:#111}
+.ws-linkbadge.vercel{background:#111;color:#fff;border-color:#111}
+.ws-drop{border:1px dashed #cfc8bd;border-radius:9px;padding:12px;background:var(--ws-soft);text-align:center;font-size:12px;color:var(--ws-sub)}
+.ws-drop input[type=file]{display:none}
+.ws-drop label{display:inline-block;cursor:pointer;font-weight:800;color:var(--ws-red);border-bottom:1px solid currentColor}
+.ws-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:10px}
+.ws-media-tile{position:relative;border:1px solid var(--ws-line);border-radius:7px;overflow:hidden;background:#f2efe9;aspect-ratio:1/1}
+.ws-media-tile img,.ws-media-tile video{width:100%;height:100%;object-fit:cover;display:block}
+.ws-media-tile button{position:absolute;top:3px;right:3px;border:0;border-radius:4px;background:rgba(0,0,0,.72);color:#fff;font-size:10px;font-weight:800;padding:3px 6px;cursor:pointer;line-height:1}
+.ws-media-tag{position:absolute;left:3px;bottom:3px;background:rgba(0,0,0,.72);color:#fff;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;border-radius:3px}
+.ws-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.ws-gallery figure{margin:0;border:1px solid var(--ws-line);border-radius:8px;overflow:hidden;background:#fff}
+.ws-gallery img,.ws-gallery video{width:100%;max-height:230px;object-fit:cover;display:block;background:#f2efe9}
+.ws-gallery figcaption{font-size:11px;padding:6px 8px;color:var(--ws-sub);overflow-wrap:anywhere}
+.ws-thread{display:flex;flex-direction:column;gap:10px}
+.ws-entry{border:1px solid var(--ws-line);border-left:4px solid var(--ws-red);border-radius:8px;padding:11px 12px;background:#fff;min-width:0}
+.ws-entry.low{border-left-color:#7d8b8a}.ws-entry.medium{border-left-color:#1f5fa8}
+.ws-entry.high{border-left-color:#c47a00}.ws-entry.urgent{border-left-color:#b00020}
+.ws-entry.done{border-left-color:#177a4f;background:#f7faf8;opacity:.82}
+.ws-entry-head{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--ws-sub);margin-bottom:5px}
+.ws-entry-head strong{color:var(--ws-ink);font-size:12px}
+.ws-entry p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.ws-entry .ws-attrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.ws-entry .ws-attrow img,.ws-entry .ws-attrow video{max-height:110px;max-width:170px;border-radius:6px;border:1px solid var(--ws-line);display:block}
+.ws-prio{font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;border-radius:99px;padding:3px 8px;border:1px solid currentColor}
+.ws-prio.Low{color:#5a6b6a}.ws-prio.Medium{color:#1f5fa8}.ws-prio.High{color:#b26a00}.ws-prio.Urgent{color:#b00020}
+.ws-done{color:#177a4f}
+.ws-folderhead{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between}
+.ws-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ws-tab{border:1px solid var(--ws-line);background:#fff;border-radius:99px;padding:5px 11px;font-size:11px;font-weight:800}
+.ws-tab.active{background:var(--ws-ink);border-color:var(--ws-ink);color:#fff}
+@media(max-width:620px){.ws-linkrow{grid-template-columns:1fr 1fr}.ws-linkrow input:nth-child(3){grid-column:1/-1}}
 @media(max-width:1100px){.ws-three{grid-template-columns:1fr 1fr}.ws-stats{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){
  .ws-app{grid-template-columns:1fr}
@@ -179,15 +215,35 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
   <div class="ws-card"><h2 id="projectFormTitle">New project</h2>
     <div class="ws-field"><label>Project name</label><input id="pName" placeholder="e.g. Azarraga Glass website"></div>
     <div class="ws-pair"><div class="ws-field"><label>Client</label><input id="pClient" placeholder="Client or internal"></div><div class="ws-field"><label>Status</label><select id="pStatus"><option>In progress</option><option>Discovery</option><option>Design</option><option>Launched</option><option>On hold</option></select></div></div>
+    <div class="ws-pair"><div class="ws-field"><label>Priority</label><select id="pPriority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div><div class="ws-field"><label>Target date</label><input type="date" id="pDue"></div></div>
     <div class="ws-field"><label>Headline (large text on its page)</label><input id="pHeadline"></div>
     <div class="ws-field"><label>Short description</label><textarea id="pDescription"></textarea></div>
     <div class="ws-field"><label>Internal notes</label><textarea id="pNotes"></textarea></div>
     <div class="ws-field"><label>Tags (comma separated)</label><input id="pTags"></div>
-    <div class="ws-pair"><div class="ws-field"><label>Cover image</label><select id="pImage"></select></div><div class="ws-field"><label>Project URL</label><input id="pUrl" placeholder="https://…"></div></div>
-    <div class="ws-row"><button class="ws-btn primary" id="pSave">Save project</button><button class="ws-btn" id="pReset">Clear</button></div>
+    <div class="ws-field"><label>Cover image</label><select id="pImage"></select></div>
+    <hr class="ws-hr">
+    <div class="ws-between"><label class="ws-muted" style="font-weight:850;font-size:11px;letter-spacing:.03em;color:#3d3933">CODE, REPO &amp; LIVE LINKS</label><button class="ws-btn small" type="button" id="pAddLink">+ Add link</button></div>
+    <p class="ws-muted" style="margin:4px 0 9px">GitHub, Vercel or any relevant URL. Add as many as the project needs.</p>
+    <div id="pLinks"></div>
+    <hr class="ws-hr">
+    <div class="ws-between"><label class="ws-muted" style="font-weight:850;font-size:11px;letter-spacing:.03em;color:#3d3933">IMAGES &amp; VIDEO</label><span class="ws-muted" id="pMediaCount">0 items</span></div>
+    <p class="ws-muted" style="margin:4px 0 9px">Screenshots of the site or photos/videos straight from your device — multiple at once.</p>
+    <div class="ws-drop">
+      <input type="file" id="pMediaInput" accept="image/*,video/*" multiple>
+      <label for="pMediaInput">Choose images or a video from your device</label>
+      <div class="ws-muted" id="pMediaStatus" style="margin-top:5px">PNG, JPEG, WebP, GIF · MP4, WebM, MOV (max 100 MB video)</div>
+    </div>
+    <div class="ws-pair" style="margin-top:10px"><div class="ws-field"><label>Or paste an image / video URL</label><input id="pMediaUrl" placeholder="https://… or /uploads/…"></div><div class="ws-field"><label>Optional caption</label><input id="pMediaTitle" placeholder="Homepage desktop"></div></div>
+    <button class="ws-btn small" type="button" id="pMediaAddUrl">Add URL</button>
+    <div class="ws-media" id="pMediaGrid"></div>
+    <div class="ws-row" style="margin-top:16px"><button class="ws-btn primary" id="pSave">Save project</button><button class="ws-btn" id="pReset">Clear</button><button class="ws-btn ghost hidden" id="pOpenFolder">Open folder ↗</button></div>
   </div>
-  <div class="ws-card"><div class="ws-between"><h2>Projects</h2><span class="ws-muted" id="projectCount"></span></div><div id="projectList" class="ws-list"></div></div>
+  <div class="ws-card"><div class="ws-between"><h2>Project folders</h2><span class="ws-muted" id="projectCount"></span></div><div id="projectList" class="ws-list"></div></div>
 </div>
+</section>
+
+<section class="ws-view" id="view-folder">
+  <div id="folderRoot"></div>
 </section>
 
 <section class="ws-view" id="view-ideas">
@@ -234,7 +290,9 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
   <div class="ws-card"><h2>Leave a comment</h2>
     <div class="ws-pair"><div class="ws-field"><label>From</label><select id="cAuthor"><option>David</option><option>Lawrence</option></select></div><div class="ws-field"><label>About</label><select id="cScope"></select></div></div>
     <div class="ws-field"><label>Comment</label><textarea id="cText"></textarea></div>
-    <div class="ws-pair"><div class="ws-field"><label>Attach an image</label><select id="cImage"></select></div><div class="ws-field"><label>Or a URL</label><input id="cUrl" placeholder="https://…"></div></div>
+    <div class="ws-pair"><div class="ws-field"><label>Priority</label><select id="cPriority"><option>Low</option><option selected>Medium</option><option>High</option><option>Urgent</option></select></div><div class="ws-field"><label>Or a URL</label><input id="cUrl" placeholder="https://…"></div></div>
+    <div class="ws-field"><label>Attach images or video from your device</label><input type="file" id="cFiles" accept="image/*,video/*" multiple></div>
+    <div class="ws-field"><label>Or pick a library image</label><select id="cImage"></select></div>
     <button class="ws-btn primary" id="cAdd">Post comment</button>
   </div>
   <div class="ws-card"><h2>Activity</h2><div id="commentList" class="ws-list"></div></div>
@@ -255,6 +313,13 @@ let toastTimer;
 const toast = msg => { const t=$('wsToast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600); };
 const http = async (url, opts={}) => { const r=await fetch(url,opts); let d={}; try{d=await r.json()}catch{} if(!r.ok) throw new Error(d.error||'Request failed'); return d; };
 let S={brand:{},projects:[],ideas:[],files:[],links:[],comments:[]}, dirty=false, editingProject=null, editingLink=null;
+const PRIOS=['Low','Medium','High','Urgent'];
+// Working draft for the project form: links + media are edited here until Save.
+let draft={links:[],media:[]}, openFolder=null, folderTab='overview';
+const isHttp=u=>/^https?:\/\/[^\s"'<>]+$/i.test(String(u||''));
+const isMediaUrl=u=>isHttp(u)||/^\/uploads\/[A-Za-z0-9._-]+$/.test(String(u||''));
+const mediaKind=(url,type)=> /^video\//i.test(type||'')||/\.(mp4|webm|mov)$/i.test(url||'')?'video':'image';
+const linkKindFromUrl=u=>{const s=String(u||'').toLowerCase();if(s.includes('github.'))return 'github';if(s.includes('vercel.'))return 'vercel';if(s.includes('figma.'))return 'figma';if(s.includes('docs.google')||s.includes('notion.'))return 'docs';return 'other'};
 const markDirty=()=>{dirty=true;$('wsSaved').textContent='Unsaved changes'};
 const setSaved=t=>{$('wsSaved').textContent=t;toast(t)};
 const slugify=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,60)||'project';
@@ -263,7 +328,8 @@ const searchTerm=()=>($('wsSearch').value||'').trim().toLowerCase();
 const matches=q=>String(q||'').toLowerCase().includes(searchTerm());
 const statusPill=s=>`<span class="ws-pill ${s==='Launched'?'green':s==='On hold'?'grey':'red'}">${esc(s||'In progress')}</span>`;
 function go(view){
-  document.querySelectorAll('#wsNav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  const navView=view==='folder'?'projects':view;
+  document.querySelectorAll('#wsNav [data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===navView));
   document.querySelectorAll('.ws-view').forEach(v=>v.classList.toggle('active',v.id==='view-'+view));
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -275,7 +341,7 @@ async function boot(){
     const me=await http('/api/me');
     if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');return}
     $('wsLogin').classList.add('hidden');$('wsApp').classList.remove('hidden');
-    await load();
+    await load();renderDraftLinks();renderDraftMedia();
   }catch(e){$('wsApp').classList.remove('hidden');$('wsSaved').textContent=e.message}
 }
 $('wsLoginBtn').onclick=async()=>{
@@ -299,7 +365,11 @@ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.return
 function optionsFrom(list,selected,placeholder){return `<option value="">${placeholder}</option>`+list.map(x=>`<option value="${esc(x.url)}"${x.url===selected?' selected':''}>${esc(x.title||x.name||x.url)}</option>`).join('')}
 function refreshSelects(){
   const imgs=S.files.filter(f=>/^image\//.test(f.type||'')||/\.(png|jpe?g|webp|gif)$/i.test(f.url||''));
-  $('pImage').innerHTML=optionsFrom(imgs,$('pImage').value,'No image');
+  const draftImgs=(draft.media||[]).filter(m=>m.type==='image').map(m=>({url:m.url,title:m.title||m.name||'Project upload'}));
+  const coverOpts=[...draftImgs,...imgs.filter(f=>!draftImgs.some(d=>d.url===f.url))];
+  const coverNow=$('pImage').value||(editingProject?(S.projects.find(x=>x.id===editingProject)||{}).image:'')||'';
+  const coverList=coverNow&&!coverOpts.some(o=>o.url===coverNow)?[{url:coverNow,title:'Current cover'}].concat(coverOpts):coverOpts;
+  $('pImage').innerHTML=optionsFrom(coverList,coverNow,'No image');
   $('bLogo').innerHTML=optionsFrom(imgs,S.brand.logo,'No logo');
   $('cImage').innerHTML=optionsFrom(imgs,'','None');
   const scope=$('cScope'),cur=scope.value;
@@ -312,16 +382,126 @@ function renderDashboard(){
   $('navProjects').textContent=S.projects.length;$('navIdeas').textContent=S.ideas.length;$('navFiles').textContent=S.files.length;
   $('navLinks').textContent=S.links.length;$('navComments').textContent=S.comments.length;
   [['barProjects',active.length],['barIdeas',S.ideas.length],['barFiles',S.files.length],['barLinks',S.links.length]].forEach(([id,n])=>$(id).style.width=Math.min(100,n*12)+'%');
-  $('dashProjects').innerHTML=active.filter(p=>matches(p.name+' '+p.client+' '+(p.tags||[]).join(' '))).slice(0,5).map(p=>`<div class="ws-proj" data-editproject="${esc(p.id)}" role="button" tabindex="0"><div class="ws-between"><h3>${esc(p.name)}</h3>${statusPill(p.status)}</div><div class="ws-muted">${esc(p.client||'MerQato Digital')} · /p/${esc(p.slug)}</div><p>${esc((p.description||'').slice(0,150))}</p><div class="ws-row"><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button></div></div>`).join('')||'<div class="ws-empty">No active projects yet.<br><button class="ws-btn small" data-goto="projects">Add the first project</button></div>';
+  $('dashProjects').innerHTML=active.filter(p=>matches(p.name+' '+p.client+' '+(p.tags||[]).join(' '))).slice(0,5).map(p=>`<div class="ws-proj" data-editproject="${esc(p.id)}" role="button" tabindex="0"><div class="ws-between"><h3>${esc(p.name)}</h3><div class="ws-row">${prioPill(p.priority)}${statusPill(p.status)}</div></div><div class="ws-muted">${esc(p.client||'MerQato Digital')} · /p/${esc(p.slug)}${p.due?' · due '+esc(p.due):''}</div><p>${esc((p.description||'').slice(0,150))}</p><div class="ws-row"><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button></div></div>`).join('')||'<div class="ws-empty">No active projects yet.<br><button class="ws-btn small" data-goto="projects">Add the first project</button></div>';
   $('dashActivity').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).slice(0,5).map(c=>`<div class="ws-feeditem"><div class="ws-muted">${esc(c.author||'Partner')} · ${date(c.created)}</div><p>${esc(c.text)}</p></div>`).join('')||'<div class="ws-empty">No notes yet.<br><button class="ws-btn small" data-goto="activity">Leave the first note</button></div>';
   $('dashLinks').innerHTML=S.links.filter(l=>matches(l.title+' '+l.url)).slice(0,8).map(l=>`<a class="ws-chip" href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(l.url)}">${esc(l.title)} ↗</a>`).join('')||'<div class="ws-empty">No saved links yet.<br><button class="ws-btn small" data-goto="links">Add a quick link</button></div>';
   $('dashIdeas').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).slice(0,4).map(i=>`<div class="ws-item"><div class="ws-between"><h3>${esc(i.title)}</h3><span class="ws-pill blue">${esc(i.status||'New')}</span></div></div>`).join('')||'<div class="ws-empty">No ideas yet.<br><button class="ws-btn small" data-goto="ideas">Capture the first idea</button></div>';
   $('wsDate').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 }
+function prioPill(p){return `<span class="ws-prio ${esc(p||'Medium')}">${esc(p||'Medium')}</span>`}
+function threadFor(id){return S.comments.filter(c=>c.scope&&c.scope.type==='project'&&c.scope.id===id)}
 function renderProjects(){
-  const list=S.projects.filter(p=>matches(p.name+' '+(p.client||'')+' '+(p.tags||[]).join(' ')));
+  const list=S.projects.filter(p=>matches(p.name+' '+(p.client||'')+' '+(p.tags||[]).join(' ')+' '+(p.links||[]).map(l=>l.url+' '+l.label).join(' ')));
   $('projectCount').textContent=list.length+' of '+S.projects.length;
-  $('projectList').innerHTML=list.map(p=>`<div class="ws-item${editingProject===p.id?' sel':''}"><div class="ws-between"><h3>${esc(p.name)}</h3>${statusPill(p.status)}</div><div class="ws-muted">${esc(p.client||'')} · /p/${esc(p.slug)}</div><p>${esc((p.description||'').slice(0,200))}</p><div class="ws-row"><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener">View page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button><button class="ws-btn small danger" data-delproject="${esc(p.id)}">Delete</button></div></div>`).join('')||'<div class="ws-empty">No projects yet.</div>';
+  $('projectList').innerHTML=list.map(p=>{
+    const th=threadFor(p.id),openN=th.filter(c=>!c.done).length,doneN=th.length-openN;
+    const urls=(p.links||[]).slice(0,3).map(l=>`<span class="ws-linkbadge ${esc(l.kind||'other')}">${esc(l.kind||'link')}</span>`).join(' ');
+    return `<div class="ws-item${editingProject===p.id?' sel':''}"><div class="ws-between"><h3>${esc(p.name)}</h3><div class="ws-row">${prioPill(p.priority)}${statusPill(p.status)}</div></div>
+    <div class="ws-muted">${esc(p.client||'MerQato Digital')} · /p/${esc(p.slug)}${p.due?' · due '+esc(p.due):''}</div>
+    <p>${esc((p.description||'').slice(0,180))}</p>
+    <div class="ws-row" style="margin-bottom:7px">${urls||'<span class="ws-muted">No code or live links yet</span>'}<span class="ws-muted">· ${(p.media||[]).length} media</span><span class="ws-muted ws-done">· ${openN} open</span><span class="ws-muted">· ${doneN} completed</span></div>
+    <div class="ws-row"><button class="ws-btn small dark" data-openfolder="${esc(p.id)}">Open folder</button><a class="ws-link" href="/p/${esc(p.slug)}" target="_blank" rel="noopener">Public page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit</button><button class="ws-btn small danger" data-delproject="${esc(p.id)}">Delete</button></div></div>`;
+  }).join('')||'<div class="ws-empty">No projects yet.</div>';
+}
+function openFolderPage(id){
+  const p=S.projects.find(x=>x.id===id);if(!p)return;
+  openFolder=p.id;folderTab='overview';renderFolder();go('folder');window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderFolder(){
+  const p=S.projects.find(x=>x.id===openFolder);
+  if(!p){$('folderRoot').innerHTML='<div class="ws-empty">Project not found. <button class="ws-btn small" data-folderback="1">Back</button></div>';return}
+  const th=threadFor(p.id),open=th.filter(c=>!c.done),done=th.filter(c=>c.done);
+  const tabs=[['overview','Overview'],['tools',`Tools & links (${(p.links||[]).length})`],['media',`Images & video (${(p.media||[]).length})`],['thread',`Discussion (${open.length} open · ${done.length} done)`]];
+  const linkCards=(p.links||[]).map(l=>`<a class="ws-chip" href="${esc(l.url)}" target="_blank" rel="noopener" style="display:block;padding:11px 13px"><span class="ws-linkbadge ${esc(l.kind||'other')}">${esc(l.kind||'link')}</span> <strong>${esc(l.label||l.url.replace(/^https?:\/\//,''))}</strong><div class="ws-muted" style="margin-top:4px">${esc(l.url)}</div></a>`).join('')||'<div class="ws-empty">No links yet. <button class="ws-btn small" data-editproject="'+esc(p.id)+'">Add links</button></div>';
+  const mediaCards=(p.media||[]).map(m=>`<figure>${m.type==='video'?`<video src="${esc(m.url)}" controls preload="metadata" playsinline></video>`:`<a href="${esc(m.url)}" target="_blank" rel="noopener"><img src="${esc(m.url)}" alt="${esc(m.title||m.name||'Project image')}" loading="lazy"></a>`}<figcaption>${esc(m.title||m.name||(m.type==='video'?'Video':'Image'))}</figcaption></figure>`).join('')||'<div class="ws-empty">No images or video yet. <button class="ws-btn small" data-editproject="'+esc(p.id)+'">Add media</button></div>';
+  const entryCard=c=>`<div class="ws-entry ${esc((c.priority||'Medium').toLowerCase())}${c.done?' done':''}">
+    <div class="ws-entry-head"><strong>${esc(c.author||'Partner')}</strong>${prioPill(c.priority)}<span>${c.done?'Completed '+date(c.completedAt):'Raised '+date(c.created)}</span>${c.done&&c.completedBy?`<span>· by ${esc(c.completedBy)}</span>`:''}</div>
+    <p>${esc(c.text)}</p>
+    ${(c.attachments||[]).length?`<div class="ws-attrow">${c.attachments.map(a=>a.type==='video'?`<video src="${esc(a.url)}" controls preload="metadata" playsinline></video>`:`<a href="${esc(a.url)}" target="_blank" rel="noopener"><img src="${esc(a.url)}" alt="${esc(a.name||'Attachment')}" loading="lazy"></a>`).join('')}</div>`:''}
+    ${c.url?`<a class="ws-link" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url)} ↗</a>`:''}
+    <div class="ws-row" style="margin-top:8px">
+      <select data-entryprio="${esc(c.id)}" style="width:auto;border:1px solid #d3cec6;border-radius:5px;padding:4px 6px;font-size:11px">${PRIOS.map(x=>`<option${c.priority===x?' selected':''}>${x}</option>`).join('')}</select>
+      <button class="ws-btn small ${c.done?'':'dark'}" data-entrydone="${esc(c.id)}">${c.done?'Reopen':'Mark complete'}</button>
+      <span class="ws-muted">${c.done?'Completed '+date(c.completedAt):'Open'}</span>
+    </div></div>`;
+  $('folderRoot').innerHTML=`
+  <div class="ws-row" style="margin-bottom:12px"><button class="ws-btn small" data-folderback="1">← All projects</button><a class="ws-btn small" href="/p/${esc(p.slug)}" target="_blank" rel="noopener">Public page ↗</a><button class="ws-btn small" data-editproject="${esc(p.id)}">Edit folder</button></div>
+  <div class="ws-card">
+    <div class="ws-folderhead">
+      <div style="min-width:0">
+        <div class="ws-eyebrow">PROJECT FOLDER</div>
+        <h2 style="font-size:26px;letter-spacing:-.04em;margin:6px 0 4px;overflow-wrap:anywhere">${esc(p.name)}</h2>
+        <div class="ws-muted">${esc(p.client||'MerQato Digital')} · /p/${esc(p.slug)}</div>
+      </div>
+      <div class="ws-row">${prioPill(p.priority)}${statusPill(p.status)}${p.due?`<span class="ws-pill grey">Due ${esc(p.due)}</span>`:''}</div>
+    </div>
+    <div class="ws-stats" style="margin:16px 0 6px;grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="ws-stat" style="cursor:default"><div class="ws-label">Open items</div><div class="ws-num" style="font-size:30px">${open.length}</div></div>
+      <div class="ws-stat" style="cursor:default"><div class="ws-label">Completed</div><div class="ws-num" style="font-size:30px;color:#177a4f">${done.length}</div></div>
+      <div class="ws-stat" style="cursor:default"><div class="ws-label">Links</div><div class="ws-num" style="font-size:30px">${(p.links||[]).length}</div></div>
+      <div class="ws-stat" style="cursor:default"><div class="ws-label">Media</div><div class="ws-num" style="font-size:30px">${(p.media||[]).length}</div></div>
+    </div>
+    <div class="ws-tabs" style="margin-top:14px">${tabs.map(([k,label])=>`<button class="ws-tab${folderTab===k?' active':''}" data-foldertab="${k}">${esc(label)}</button>`).join('')}</div>
+    <div id="folderTabBody"></div>
+  </div>`;
+  const body=$('folderTabBody');
+  if(folderTab==='overview'){
+    const cover=(p.media||[]).find(m=>m.type==='image');
+    body.innerHTML=`
+      <div class="ws-two" style="align-items:start">
+        <div>
+          <h3 style="margin:0 0 6px">${esc(p.headline||p.name)}</h3>
+          <p style="white-space:pre-wrap">${esc(p.description||'No description yet.')}</p>
+          ${p.notes?`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:16px 0 5px">Internal notes</h4><div class="ws-muted" style="white-space:pre-wrap;font-size:13px;color:#3d3933">${esc(p.notes)}</div>`:''}
+          <div class="ws-chiprow" style="margin-top:12px">${(p.tags||[]).map(t=>`<span class="ws-chip">${esc(t)}</span>`).join('')}</div>
+        </div>
+        <div>${cover?`<img src="${esc(cover.url)}" alt="${esc(p.name)} cover" style="width:100%;border-radius:9px;border:1px solid var(--ws-line);display:block">`:'<div class="ws-empty">No cover image yet.</div>'}</div>
+      </div>
+      <hr class="ws-hr">
+      <h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Where this project lives</h4>
+      <div class="ws-chiprow">${linkCards}</div>`;
+  }
+  if(folderTab==='tools'){
+    body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Code, deploy and working links</h4><div class="ws-chiprow">${linkCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Manage links</button>`;
+  }
+  if(folderTab==='media'){
+    body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Screens, shots and video from devices</h4><div class="ws-gallery">${mediaCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Add images or video</button>`;
+  }
+  if(folderTab==='thread'){
+    body.innerHTML=`
+      <div class="ws-card" style="background:var(--ws-soft);margin-bottom:14px;border-style:dashed">
+        <h4 style="margin:0 0 10px;font-size:13px">Add an update for your partner</h4>
+        <div class="ws-field"><textarea id="fComment" placeholder="What changed, what you need, what is blocked…"></textarea></div>
+        <div class="ws-field"><input type="file" id="fCommentFiles" accept="image/*,video/*" multiple></div>
+        <div class="ws-pair" style="align-items:end">
+          <div class="ws-field"><label>From</label><select id="fAuthor"><option>David</option><option>Lawrence</option></select></div>
+          <div class="ws-field"><label>Priority</label><select id="fPriority">${PRIOS.map(x=>`<option${x==='Medium'?' selected':''}>${x}</option>`).join('')}</select></div>
+        </div>
+        <div class="ws-row"><button class="ws-btn primary" id="fCommentSave">Post to folder</button><span class="ws-muted" id="fCommentStatus"></span></div>
+      </div>
+      <h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Open · ${open.length}</h4>
+      <div class="ws-thread">${open.map(entryCard).join('')||'<div class="ws-empty">Nothing open.</div>'}</div>
+      <h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#177a4f;margin:20px 0 8px">Completed · ${done.length}</h4>
+      <div class="ws-thread">${done.map(entryCard).join('')||'<div class="ws-empty">Nothing completed yet.</div>'}</div>`;
+    $('fCommentSave').onclick=async()=>{
+      const text=$('fComment').value.trim();if(!text)return toast('Write an update first');
+      const author=$('fAuthor').value,priority=$('fPriority').value,status=$('fCommentStatus');
+      const files=Array.from($('fCommentFiles').files||[]);
+      const attachments=[];
+      for(const f of files){
+        status.textContent='Uploading '+f.name+'…';
+        try{
+          const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});
+          const d=await r.json();if(!r.ok)throw new Error(d.error||'Upload failed');
+          attachments.push({url:d.url,type:mediaKind(d.url,d.type),name:f.name});
+        }catch(err){toast(f.name+': '+err.message)}
+      }
+      try{
+        await http('/api/workspace/comment',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({author,priority,text,scope:{type:'project',id:p.id},attachments})});
+        status.textContent='Posted.';await load();renderFolder();
+      }catch(err){status.textContent='';toast(err.message)}
+    };
+  }
 }
 function renderIdeas(){
   $('ideaList').innerHTML=S.ideas.filter(i=>matches(i.title+' '+i.description)).map(i=>`<div class="ws-item"><div class="ws-between"><h3>${esc(i.title)}</h3><select data-ideastatus="${esc(i.id)}" style="width:auto"><option${i.status==='New'?' selected':''}>New</option><option${i.status==='Review'?' selected':''}>Review</option><option${i.status==='Building'?' selected':''}>Building</option><option${i.status==='Parked'?' selected':''}>Parked</option></select></div><div class="ws-muted">${date(i.created)}</div><p>${esc(i.description||'')}</p><div class="ws-row"><button class="ws-btn small" data-idea-comment="${esc(i.id)}">Comment</button><button class="ws-btn small danger" data-delidea="${esc(i.id)}">Delete</button></div></div>`).join('')||'<div class="ws-empty">No ideas yet.</div>';
@@ -339,26 +519,128 @@ function renderLinks(){
   $('linkList').innerHTML=list.map(l=>`<div class="ws-item" data-link="${esc(l.id)}"><div class="ws-between"><h3>${esc(l.title)}</h3><span class="ws-pill ${l.hasPassword?'green':'grey'}">${l.hasPassword?'Password saved':'No password'}</span></div><div class="ws-muted">${esc(l.category||'Other')}</div><div class="ws-muted ws-link">${esc(l.url)}</div>${l.username?`<div class="ws-muted">User: ${esc(l.username)}</div>`:''}${l.notes?`<p>${esc(l.notes)}</p>`:''}<div class="ws-row" style="margin-top:8px"><a class="ws-link" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">Open ↗</a>${l.hasPassword?`<button class="ws-btn small" data-reveal="${esc(l.id)}">Reveal password</button>`:''}<button class="ws-btn small" data-editlink="${esc(l.id)}">Edit</button><button class="ws-btn small danger" data-dellink="${esc(l.id)}">Delete</button></div><div data-secret="${esc(l.id)}"></div></div>`).join('')||'<div class="ws-empty">No saved links yet.</div>';
 }
 function renderComments(){
-  $('commentList').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).map(c=>`<div class="ws-item"><div class="ws-between"><strong>${esc(c.author||'Partner')}</strong><span class="ws-muted">${date(c.created)}</span></div><div class="ws-muted">${esc(c.scope?.type||'general')}${c.scope?.id?': '+esc((S.projects.find(p=>p.id===c.scope.id)||{}).name||(S.ideas.find(i=>i.id===c.scope.id)||{}).title||'item'):''}</div><p style="white-space:pre-wrap">${esc(c.text)}</p>${c.image?`<img class="ws-thumb" src="${esc(c.image)}" alt="Attachment">`:''}${c.url?`<a class="ws-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.url)} ↗</a>`:''}</div>`).join('')||'<div class="ws-empty">No comments yet.</div>';
+  $('commentList').innerHTML=S.comments.filter(c=>matches(c.text+' '+c.author)).map(c=>`<div class="ws-item${c.done?' ':''}"><div class="ws-between"><div class="ws-row"><strong>${esc(c.author||'Partner')}</strong>${prioPill(c.priority)}${c.done?'<span class="ws-pill green">Completed</span>':''}</div><span class="ws-muted">${c.done?'Completed '+date(c.completedAt):date(c.created)}</span></div><div class="ws-muted">${esc(c.scope?.type||'general')}${c.scope?.id?': '+esc((S.projects.find(p=>p.id===c.scope.id)||{}).name||(S.ideas.find(i=>i.id===c.scope.id)||{}).title||'item'):''}</div><p style="white-space:pre-wrap">${esc(c.text)}</p>${c.image?`<img class="ws-thumb" src="${esc(c.image)}" alt="Attachment">`:''}${(c.attachments||[]).map(a=>a.type==='video'?`<video class="ws-thumb" src="${esc(a.url)}" controls preload="metadata" playsinline></video>`:`<a href="${esc(a.url)}" target="_blank" rel="noopener"><img class="ws-thumb" src="${esc(a.url)}" alt="${esc(a.name||'Attachment')}" loading="lazy"></a>`).join('')}${c.url?`<a class="ws-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.url)} ↗</a>`:''}</div>`).join('')||'<div class="ws-empty">No comments yet.</div>';
 }
 function renderBrandForm(){
   const b=S.brand||{};$('bName').value=b.name||'';$('bTagline').value=b.tagline||'';
   $('bPrimary').value=b.primary||'#111111';$('bAccent').value=b.accent||'#D6001C';$('bPaper').value=b.paper||'#EDE7D9';$('bInk').value=b.ink||'#111111';
   $('bDisplay').value=b.fonts?.display||'Anton';$('bBody').value=b.fonts?.body||'Inter';$('bGuidelines').value=b.guidelines||'';
 }
-function renderAll(){refreshSelects();renderDashboard();renderProjects();renderIdeas();renderFiles();renderLinks();renderComments();renderBrandForm()}
+function renderAll(){refreshSelects();renderDashboard();renderProjects();renderIdeas();renderFiles();renderLinks();renderComments();renderBrandForm();if(openFolder)renderFolder()}
 $('wsNav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)go(b.dataset.view)});
 $('wsSearch').addEventListener('input',renderAll);
-$('pSave').onclick=()=>{
+document.addEventListener('change',async e=>{
+  const el=e.target;
+  if(el.dataset && el.dataset.entryprio){
+    try{await http('/api/workspace/comment/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:el.dataset.entryprio,priority:el.value})});await load();renderFolder();renderAll();toast('Priority set to '+el.value)}catch(err){toast(err.message)}
+  }
+});
+
+$('pSave').onclick=async()=>{
   const name=$('pName').value.trim();if(!name)return toast('Add a project name first');
-  const p={id:editingProject||uid(),name,client:$('pClient').value.trim(),status:$('pStatus').value,headline:$('pHeadline').value.trim(),description:$('pDescription').value.trim(),notes:$('pNotes').value.trim(),tags:$('pTags').value.split(',').map(x=>x.trim()).filter(Boolean),image:$('pImage').value,url:$('pUrl').value.trim(),slug:slugify(name),created:new Date().toISOString()};
-  const i=S.projects.findIndex(x=>x.id===p.id);if(i>=0)S.projects[i]=p;else S.projects.unshift(p);
-  editingProject=null;$('projectFormTitle').textContent='New project';$('pReset').click();markDirty();save(true).then(renderAll);
+  const old=S.projects.find(x=>x.id===editingProject);
+  const p={id:editingProject||uid(),name,client:$('pClient').value.trim(),status:$('pStatus').value,
+    priority:$('pPriority').value,due:$('pDue').value,
+    headline:$('pHeadline').value.trim(),description:$('pDescription').value.trim(),notes:$('pNotes').value.trim(),
+    tags:$('pTags').value.split(',').map(x=>x.trim()).filter(Boolean),
+    image:$('pImage').value,url:old?.url||'',slug:old?.slug||slugify(name),
+    links:draft.links.filter(l=>isHttp(l.url)).map(l=>({id:l.id||uid(),label:l.label||'',url:l.url,kind:l.kind||linkKindFromUrl(l.url)})),
+    media:draft.media.slice(),
+    created:old?.created||new Date().toISOString()};
+  const i=S.projects.findIndex(x=>x.id===p.id);if(i>=0)S.projects[i]={...S.projects[i],...p};else S.projects.unshift(p);
+  resetProjectForm();
+  const savedImage=$('pImage').value;
+  markDirty();await save(true);renderAll();$('pImage').value=savedImage;toast('Project folder saved');
 };
-$('pReset').onclick=()=>{editingProject=null;$('projectFormTitle').textContent='New project';['pName','pClient','pHeadline','pDescription','pNotes','pTags','pUrl'].forEach(id=>$(id).value='');$('pImage').value='';$('pStatus').value='In progress'};
+function resetProjectForm(){
+  editingProject=null;draft={links:[],media:[]};
+  $('projectFormTitle').textContent='New project';
+  ['pName','pClient','pHeadline','pDescription','pNotes','pTags','pMediaUrl','pMediaTitle'].forEach(id=>$(id).value='');
+  $('pDue').value='';$('pImage').value='';$('pStatus').value='In progress';$('pPriority').value='Medium';
+  $('pOpenFolder').classList.add('hidden');renderDraftLinks();renderDraftMedia();
+}
+function editProject(id){
+  const p=S.projects.find(x=>x.id===id);if(!p)return;
+  editingProject=p.id;$('projectFormTitle').textContent='Edit project';
+  $('pName').value=p.name||'';$('pClient').value=p.client||'';$('pStatus').value=p.status||'In progress';
+  $('pPriority').value=PRIOS.includes(p.priority)?p.priority:'Medium';$('pDue').value=p.due||'';
+  $('pHeadline').value=p.headline||'';$('pDescription').value=p.description||'';$('pNotes').value=p.notes||'';
+  $('pTags').value=(p.tags||[]).join(', ');
+  draft={links:(p.links||[]).map(l=>({...l})),media:(p.media||[]).map(m=>({...m}))};
+  $('pOpenFolder').classList.remove('hidden');$('pOpenFolder').dataset.slug=p.slug||slugify(p.name);
+  renderDraftLinks();renderDraftMedia();refreshSelects();$('pImage').value=p.image||'';go('projects');window.scrollTo({top:0,behavior:'smooth'});
+}
+$('pOpenFolder').onclick=()=>{const s=$('pOpenFolder').dataset.slug;if(s)openFolderPage(S.projects.find(p=>p.slug===s)?.id)};
+$('pReset').onclick=resetProjectForm;
+$('pAddLink').onclick=()=>{draft.links.push({id:uid(),label:'',url:'',kind:'other'});renderDraftLinks()};
+function renderDraftLinks(){
+  const wrap=$('pLinks');
+  if(!draft.links.length){wrap.innerHTML='<div class="ws-empty" style="padding:12px">No links yet. Add GitHub, Vercel or any relevant URL.</div>';return}
+  wrap.innerHTML=draft.links.map((l,i)=>`<div class="ws-linkrow" data-linkrow="${i}">
+    <select data-linkkind="${i}" aria-label="Link type"><option value="github"${l.kind==='github'?' selected':''}>GitHub</option><option value="vercel"${l.kind==='vercel'?' selected':''}>Vercel</option><option value="figma"${l.kind==='figma'?' selected':''}>Figma</option><option value="docs"${l.kind==='docs'?' selected':''}>Docs</option><option value="preview"${l.kind==='preview'?' selected':''}>Preview</option><option value="other"${l.kind==='other'?' selected':''}>Other</option></select>
+    <input data-linklabel="${i}" placeholder="Label (optional)" value="${esc(l.label||'')}">
+    <input data-linkurl="${i}" placeholder="https://github.com/org/repo" value="${esc(l.url||'')}">
+    <button class="ws-btn small danger" type="button" data-linkdel="${i}" aria-label="Remove link">✕</button></div>`).join('');
+}
+function renderDraftMedia(){
+  $('pMediaCount').textContent=draft.media.length+(draft.media.length===1?' item':' items');
+  $('pMediaGrid').innerHTML=draft.media.map((m,i)=>`<div class="ws-media-tile">
+    ${m.type==='video'?`<video src="${esc(m.url)}" muted playsinline preload="metadata"></video>`:`<img src="${esc(m.url)}" alt="${esc(m.title||m.name||'Project image')}">`}
+    <span class="ws-media-tag">${m.type==='video'?'Video':'Image'}</span>
+    <button type="button" data-mediadel="${i}" aria-label="Remove media">✕</button></div>`).join('');
+}
+$('pLinks').addEventListener('change',e=>{
+  const el=e.target, i=Number(el.dataset.linkkind ?? el.dataset.linklabel ?? el.dataset.linkurl);
+  if(!Number.isFinite(i)||!draft.links[i])return;
+  if(el.dataset.linkkind!==undefined)draft.links[i].kind=el.value;
+  if(el.dataset.linklabel!==undefined)draft.links[i].label=el.value;
+  if(el.dataset.linkurl!==undefined){draft.links[i].url=el.value.trim();if(draft.links[i].kind==='other')draft.links[i].kind=linkKindFromUrl(el.value)}
+});
+$('pLinks').addEventListener('input',e=>{
+  const el=e.target,i=Number(el.dataset.linklabel ?? el.dataset.linkurl);
+  if(!Number.isFinite(i)||!draft.links[i])return;
+  if(el.dataset.linklabel!==undefined)draft.links[i].label=el.value;
+  if(el.dataset.linkurl!==undefined)draft.links[i].url=el.value.trim();
+});
+$('pLinks').addEventListener('click',e=>{
+  const b=e.target.closest('[data-linkdel]');if(!b)return;
+  draft.links.splice(Number(b.dataset.linkdel),1);renderDraftLinks();
+});
+$('pMediaGrid').addEventListener('click',e=>{
+  const b=e.target.closest('[data-mediadel]');if(!b)return;
+  draft.media.splice(Number(b.dataset.mediadel),1);renderDraftMedia();
+});
+async function uploadFiles(files){
+  const list=Array.from(files||[]);if(!list.length)return;
+  const status=$('pMediaStatus');
+  for(let i=0;i<list.length;i++){
+    const f=list[i];
+    status.textContent=`Uploading ${i+1} of ${list.length}: ${f.name}`;
+    try{
+      const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});
+      const d=await r.json();if(!r.ok)throw new Error(d.error||'Upload failed');
+      draft.media.push({id:uid(),url:d.url,type:mediaKind(d.url,d.type),name:f.name,title:f.name.replace(/\.[a-z0-9]+$/i,''),created:new Date().toISOString()});
+      renderDraftMedia();
+    }catch(err){toast(f.name+': '+err.message)}
+  }
+  status.textContent=list.length+' file'+(list.length===1?'':'s')+' ready. Remember to save the project.';
+  $('pMediaInput').value='';
+}
+$('pMediaInput').addEventListener('change',e=>uploadFiles(e.target.files));
+$('pMediaAddUrl').onclick=()=>{
+  const url=$('pMediaUrl').value.trim();
+  if(!isMediaUrl(url))return toast('Paste a full http(s) URL or an /uploads/ path');
+  draft.media.push({id:uid(),url,type:mediaKind(url),name:'',title:$('pMediaTitle').value.trim(),created:new Date().toISOString()});
+  $('pMediaUrl').value='';$('pMediaTitle').value='';renderDraftMedia();
+};
 document.addEventListener('click',async e=>{
-  const t=e.target.closest('[data-editproject],[data-delproject],[data-delidea],[data-idea-comment],[data-delfile],[data-dellink],[data-reveal],[data-editlink]');if(!t)return;
-  if(t.dataset.editproject){const p=S.projects.find(x=>x.id===t.dataset.editproject);if(!p)return;editingProject=p.id;$('projectFormTitle').textContent='Edit project';$('pName').value=p.name||'';$('pClient').value=p.client||'';$('pStatus').value=p.status||'In progress';$('pHeadline').value=p.headline||'';$('pDescription').value=p.description||'';$('pNotes').value=p.notes||'';$('pTags').value=(p.tags||[]).join(', ');$('pUrl').value=p.url||'';$('pImage').value=p.image||'';go('projects');window.scrollTo(0,0)}
+  const t=e.target.closest('[data-editproject],[data-delproject],[data-delidea],[data-idea-comment],[data-delfile],[data-dellink],[data-reveal],[data-editlink],[data-openfolder],[data-folderback],[data-foldertab],[data-entrydone],[data-entryprio]');if(!t)return;
+  if(t.dataset.editproject){editProject(t.dataset.editproject)}
+  if(t.dataset.openfolder){openFolderPage(t.dataset.openfolder)}
+  if(t.dataset.folderback){go('projects')}
+  if(t.dataset.foldertab){folderTab=t.dataset.foldertab;renderFolder()}
+  if(t.dataset.entrydone){const c=S.comments.find(x=>x.id===t.dataset.entrydone);if(c){
+     try{await http('/api/workspace/comment/status',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:c.id,done:!c.done,author:$('fAuthor')?.value||c.author})});await load();renderFolder();renderAll();toast(c.done?'Reopened':'Marked complete')}catch(err){toast(err.message)}}}
   if(t.dataset.delproject){if(!confirm('Delete this project?'))return;S.projects=S.projects.filter(x=>x.id!==t.dataset.delproject);markDirty();save(true).then(renderAll)}
   if(t.dataset.delidea){if(!confirm('Delete this idea?'))return;S.ideas=S.ideas.filter(x=>x.id!==t.dataset.delidea);markDirty();save(true).then(renderAll)}
   if(t.dataset.ideacomment){go('activity');$('cScope').value='idea:'+t.dataset.ideacomment;$('cText').focus()}
@@ -389,8 +671,13 @@ $('lAdd').onclick=()=>{
 };
 $('cAdd').onclick=async()=>{
   const text=$('cText').value.trim();if(!text)return toast('Write a comment first');
+  const generalAttachments=[];
+  for(const f of Array.from($('cFiles').files||[])){
+    toast('Uploading '+f.name+'…');
+    try{const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':f.type||'application/octet-stream'},body:f});const d=await r.json();if(!r.ok)throw new Error(d.error||'Upload failed');generalAttachments.push({url:d.url,type:mediaKind(d.url,d.type),name:f.name})}catch(err){toast(f.name+': '+err.message)}
+  }
   const scope=$('cScope').value;const [type,id]=scope.includes(':')?scope.split(':'):[scope,''];
-  try{await http('/api/workspace/comment',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({author:$('cAuthor').value,scope:{type,id},text,url:$('cUrl').value.trim(),image:$('cImage').value})});$('cText').value='';$('cUrl').value='';toast('Comment posted');await load()}catch(e){toast(e.message)}
+  try{await http('/api/workspace/comment',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({author:$('cAuthor').value,scope:{type,id},text,url:$('cUrl').value.trim(),image:$('cImage').value,priority:$('cPriority').value,attachments:generalAttachments})});$('cText').value='';$('cUrl').value='';$('cFiles').value='';toast('Comment posted');await load()}catch(e){toast(e.message)}
 };
 boot();
 })();

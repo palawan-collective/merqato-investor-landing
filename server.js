@@ -97,10 +97,29 @@ if(pathname==='/api/workspace'&&req.method==='PUT'){
 }
 if(pathname==='/api/workspace/comment'&&req.method==='POST'){
  if(!auth(req))return send(res,401,{error:'Unauthorized'});
- const v=JSON.parse((await body(req,20000)).toString());
+ const v=JSON.parse((await body(req,30000)).toString());
  if(!v||typeof v.text!=='string'||!v.text.trim()||v.text.length>4000)return send(res,400,{error:'Comment must be 1-4000 characters'});
- const d=WS.load();d.comments.unshift({id:crypto.randomBytes(6).toString('hex'),scope:v.scope&&typeof v.scope==='object'?v.scope:{type:'general',id:''},author:String(v.author||'Partner').slice(0,60),text:v.text.trim(),url:/^https?:\/\/[^\s]+$/.test(v.url||'')?v.url:'',image:/^\/uploads\/[A-Za-z0-9._-]+$/.test(v.image||'')?v.image:'',created:new Date().toISOString()});
- d.comments=d.comments.slice(0,300);WS.save(d);return send(res,200,{ok:true});
+ const prios=['Low','Medium','High','Urgent'];
+ const attachments=Array.isArray(v.attachments)?v.attachments.slice(0,10).map(a=>({id:crypto.randomBytes(5).toString('hex'),url:/^\/uploads\/[A-Za-z0-9._-]+$/.test(a&&a.url)||/^https?:\/\/[^\s"'<>]+$/.test(a&&a.url)?a.url:'',type:/^video\//i.test(a&&a.type)?'video':'image',name:String(a&&a.name||'').slice(0,140)})).filter(a=>a.url):[];
+ const d=WS.load();
+ d.comments.unshift({id:crypto.randomBytes(6).toString('hex'),
+   scope:v.scope&&typeof v.scope==='object'?{type:String(v.scope.type||'general').slice(0,20),id:String(v.scope.id||'').slice(0,60)}:{type:'general',id:''},
+   author:String(v.author||'Partner').slice(0,60),text:v.text.trim(),
+   url:/^https?:\/\/[^\s"'<>]+$/.test(v.url||'')?v.url:'',
+   image:/^\/uploads\/[A-Za-z0-9._-]+$/.test(v.image||'')?v.image:'',
+   attachments,
+   priority:prios.includes(v.priority)?v.priority:'Medium',
+   done:false,created:new Date().toISOString(),completedAt:'',completedBy:''});
+ d.comments=d.comments.slice(0,400);WS.save(d);return send(res,200,{ok:true});
+}
+if(pathname==='/api/workspace/comment/status'&&req.method==='POST'){
+ if(!auth(req))return send(res,401,{error:'Unauthorized'});
+ const v=JSON.parse((await body(req,10000)).toString());
+ const d=WS.load(),c=(d.comments||[]).find(x=>x.id===v.id);
+ if(!c)return send(res,404,{error:'Comment not found'});
+ if('priority' in v&&['Low','Medium','High','Urgent'].includes(v.priority))c.priority=v.priority;
+ if('done' in v){c.done=!!v.done;c.completedAt=c.done?new Date().toISOString():'';c.completedBy=c.done?String(v.author||c.author||'Partner').slice(0,60):''}
+ WS.save(d);return send(res,200,{ok:true,comment:c});
 }
 if(pathname==='/api/workspace/idea'&&req.method==='POST'){
  if(!auth(req))return send(res,401,{error:'Unauthorized'});
