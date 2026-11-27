@@ -1,0 +1,15 @@
+{
+  "name": "merqato-investor-landing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MerQato investor site with partner workstation",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "MQ_LOCAL_PREVIEW=1 node server.js",
+    "check": "node --check server.js && node --check workspace.js && node -e \"require('./workspace')(process.cwd())\""
+  }
+}
