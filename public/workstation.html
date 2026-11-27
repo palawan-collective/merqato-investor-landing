@@ -194,12 +194,48 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 @media(max-width:620px){.ws-linkrow{grid-template-columns:1fr 1fr}.ws-linkrow input:nth-child(3){grid-column:1/-1}}
 @media(max-width:1100px){.ws-three{grid-template-columns:1fr 1fr}.ws-stats{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){
- .ws-app{grid-template-columns:1fr}
- .ws-side{position:static;height:auto;overflow:visible;padding:16px;gap:12px}
- .ws-nav{flex-direction:row;overflow-x:visible;flex-wrap:wrap;padding-bottom:4px}
- .ws-navitem{white-space:nowrap;width:auto;flex:0 1 auto}
- .ws-navsep,.ws-person,.ws-sidefoot{display:none}
- .ws-top{padding:18px}.ws-content{padding:18px}.ws-two{grid-template-columns:1fr}
+ /* one column, with a compact sticky app bar instead of a tall sidebar */
+ .ws-app{grid-template-columns:1fr;display:block}
+ .ws-side{position:sticky;top:0;z-index:30;height:auto;overflow:visible;padding:9px 12px 7px;gap:8px;
+   background:#111;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+ .ws-side .ws-brand{font-size:17px;letter-spacing:-.05em}
+ .ws-side .ws-brand small{display:none}
+ .ws-person,.ws-sidefoot,.ws-navsep{display:none}
+ .ws-nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:0 0 3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .ws-nav::-webkit-scrollbar{display:none}
+ .ws-navitem{white-space:nowrap;width:auto;flex:0 0 auto;font-size:12.5px;padding:9px 12px;min-height:40px;display:inline-flex;align-items:center;border-radius:8px}
+ .ws-navitem .ws-count{display:none}
+ .ws-top{padding:14px 16px 12px;gap:10px}
+ .ws-top h1{font-size:24px}
+ .ws-top p{font-size:12px}
+ .ws-topactions{width:100%;gap:8px}
+ .ws-search{width:100%;min-width:0;min-height:44px;font-size:16px}
+ .ws-btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center}
+ .ws-btn.small{min-height:34px}
+ .ws-content{padding:14px 14px 64px}
+ .ws-two,.ws-three{grid-template-columns:1fr}
+ .ws-stats{grid-template-columns:1fr 1fr;gap:10px}
+ .ws-stat{padding:13px}
+ .ws-stat .ws-num{font-size:30px}
+ .ws-board{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+ .ws-card{padding:14px}
+ .ws-field input,.ws-field textarea,.ws-field select{font-size:16px;min-height:44px}
+ .ws-field textarea{min-height:96px}
+ .ws-linkrow{grid-template-columns:1fr;gap:6px}
+ .ws-linkrow input,.ws-linkrow select{min-height:42px;font-size:16px}
+ .ws-drop{padding:14px}
+ .ws-shotgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+ .ws-tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}
+ .ws-tab{flex:0 0 auto;min-height:36px}
+ .ws-folderhead{gap:10px}
+ .ws-tile-foot{font-size:11px}
+}
+@media(max-width:520px){
+ .ws-stats{grid-template-columns:1fr 1fr}
+ .ws-board{grid-template-columns:1fr}
+ .ws-top h1{font-size:21px}
+ .ws-card,.ws-item,.ws-file{padding:12px}
+ .ws-lb-strip{display:none}
 }
 @media(max-width:620px){.ws-pair,.ws-three{grid-template-columns:1fr}.ws-stats{grid-template-columns:1fr 1fr}.ws-topactions{width:100%}.ws-search{width:100%;min-width:0}.ws-content{padding:16px 14px 50px}.ws-top{padding:14px}.ws-side{padding:12px}.ws-app{gap:0}}
 </style>
@@ -219,8 +255,8 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
     <button class="ws-navitem" data-view="activity">Activity <span class="ws-count" id="navComments">0</span></button>
     <button class="ws-navitem" data-view="agent">Office agent <span class="ws-count" id="navAgent">●</span></button>
     <div class="ws-navsep">SITE TOOLS</div>
-    <a class="ws-navitem" href="/admin/edit" target="_blank" rel="noopener">Edit site ↗</a>
-    <a class="ws-navitem" href="/" target="_blank" rel="noopener">View proposal ↗</a>
+    <a class="ws-navitem" href="/admin/edit" rel="noopener">Page editor ↗</a>
+    <a class="ws-navitem" href="/" target="_blank" rel="noopener">View site ↗</a>
   </nav>
   <div class="ws-sidefoot"><small>Partner workstation</small><small id="wsSaved">All changes saved</small></div>
 </aside>
