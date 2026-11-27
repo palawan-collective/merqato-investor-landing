@@ -259,7 +259,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
     <div class="ws-navsep">RARELY USED</div>
     <a class="ws-navitem ws-navitem-quiet" href="/admin/edit" rel="noopener">Edit site design ↗</a>
   </nav>
-  <div class="ws-sidefoot"><a class="ws-navitem" href="/" target="_blank" rel="noopener" style="text-align:left">View site ↗</a><small id="wsSaved">All changes saved</small></div>
+  <div class="ws-sidefoot"><a class="ws-navitem" href="/" target="_blank" rel="noopener" style="text-align:left">View site ↗</a><small id="wsSaved">All changes saved</small><small id="wsBuild" style="opacity:.5;font-size:10px">build —</small></div>
 </aside>
 
 <div class="ws-main">
@@ -518,6 +518,9 @@ function go(view){
 document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.goto)));
 $('wsSaveTop').onclick=()=>save(true);
 async function boot(){
+  const buildTag=document.querySelector('meta[name="mq-build"]');
+  const b=$('wsBuild');
+  if(b)b.textContent='build '+(buildTag?buildTag.getAttribute('content'):'unversioned');
   $('wsApp').classList.remove('hidden');
   try{ await load(); }
   catch(e){ $('wsSaved').textContent=e.message }
