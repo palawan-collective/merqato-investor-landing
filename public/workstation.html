@@ -152,17 +152,6 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 <style id="mq-mobile-fix">html,body{overflow-x:hidden;max-width:100%}img,video,iframe,embed,object,table,svg{max-width:100%;height:auto}*,*::before,*::after{box-sizing:border-box}.ws-app,.ws-main,.ws-side,.ws-top,.ws-content{min-width:0;max-width:100%}.ws-search{max-width:100%}.ws-nav{flex-wrap:wrap}.ws-navitem{max-width:100%}h1,h2,h3,h4,p,li,td,th{overflow-wrap:break-word;word-break:break-word}pre{white-space:pre-wrap;word-break:break-word}@media(max-width:620px){.ws-content{padding:16px 14px 50px}.ws-top{padding:14px}.ws-side{padding:12px}.ws-app{gap:0}.ws-navitem{font-size:12px;padding:7px 9px}.ws-card,.ws-item,.ws-file{padding:12px}.ws-h,.ws-h2{font-size:18px}}</style></head>
 <body>
 
-<div id="wsLogin" class="ws-login hidden">
-  <div class="ws-login-card">
-    <div class="ws-brand" style="color:#111">MerQato <b>.</b></div>
-    <h1 style="margin-top:18px">Partner workstation</h1>
-    <p>Private area for David and Lawrence. Sign in to continue.</p>
-    <div class="ws-field"><label for="wsPass">Password</label><input id="wsPass" type="password" autocomplete="current-password"></div>
-    <div id="wsLoginErr" class="ws-login-err"></div>
-    <button class="ws-btn primary" id="wsLoginBtn" style="width:100%">Sign in</button>
-  </div>
-</div>
-
 <div id="wsApp" class="ws-app hidden">
 <aside class="ws-side">
   <div class="ws-brand">MerQato <b>.</b><small>PARTNER WORKSTATION</small></div>
@@ -178,7 +167,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
     <a class="ws-navitem" href="/admin/edit" target="_blank" rel="noopener">Edit site ↗</a>
     <a class="ws-navitem" href="/" target="_blank" rel="noopener">View proposal ↗</a>
   </nav>
-  <div class="ws-sidefoot"><small>Private · no public deploy yet</small><button id="wsLogout">Log out</button><small id="wsSaved">All changes saved</small></div>
+  <div class="ws-sidefoot"><small>Partner workstation</small><small id="wsSaved">All changes saved</small></div>
 </aside>
 
 <div class="ws-main">
@@ -335,21 +324,11 @@ function go(view){
 }
 document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.goto)));
 $('wsSaveTop').onclick=()=>save(true);
-$('wsLogout').onclick=async()=>{await http('/api/logout',{method:'POST'});location.reload()};
 async function boot(){
-  try{
-    const me=await http('/api/me');
-    if(!me.authenticated){$('wsApp').classList.add('hidden');$('wsLogin').classList.remove('hidden');return}
-    $('wsLogin').classList.add('hidden');$('wsApp').classList.remove('hidden');
-    await load();renderDraftLinks();renderDraftMedia();
-  }catch(e){$('wsApp').classList.remove('hidden');$('wsSaved').textContent=e.message}
+  $('wsApp').classList.remove('hidden');
+  try{ await load(); }
+  catch(e){ $('wsSaved').textContent=e.message }
 }
-$('wsLoginBtn').onclick=async()=>{
-  $('wsLoginErr').textContent='';
-  try{await http('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:$('wsPass').value})});$('wsPass').value='';await boot()}
-  catch(e){$('wsLoginErr').textContent=e.message}
-};
-$('wsPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('wsLoginBtn').click()});
 async function load(){
   try{S=await http('/api/workspace');dirty=false;$('wsSaved').textContent='All changes saved';renderAll()}
   catch(e){$('wsSaved').textContent=e.message}
