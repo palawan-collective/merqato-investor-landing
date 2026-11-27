@@ -43,6 +43,7 @@ module.exports = function createWorkspace(ROOT) {
   const save = (data) => {
     if (Array.isArray(data.projects)) data.projects = cleanProjects(data.projects);
     if (Array.isArray(data.comments)) data.comments = cleanComments(data.comments);
+    if (Array.isArray(data.ideas)) data.ideas = cleanIdeas(data.ideas);
     data.updated = new Date().toISOString();
     if (!writable) return; // read-only host: keep serving, skip persistence
     try {
@@ -80,6 +81,7 @@ module.exports = function createWorkspace(ROOT) {
     out.comments = cleanComments(d.comments);
     // Project-scoped discussion is already mirrored in comments; keep folders self-contained too.
     out.projects = out.projects.map(p => ({ ...p, thread: out.comments.filter(c => c.scope.type === 'project' && c.scope.id === p.id) }));
+    out.ideas = cleanIdeas(d.ideas).map(i => ({ ...i, thread: out.comments.filter(c => c.scope.type === 'idea' && c.scope.id === i.id) }));
     return out;
   };
 
@@ -87,7 +89,7 @@ module.exports = function createWorkspace(ROOT) {
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- project folder primitives ----------
-  const LINK_KINDS = ['github', 'vercel', 'figma', 'docs', 'preview', 'other'];
+  const LINK_KINDS = ['github', 'vercel', 'figma', 'docs', 'drive', 'sheet', 'preview', 'video', 'other'];
   const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
   const isUploaded = (v) => /^\/uploads\/[A-Za-z0-9._-]+$/.test(String(v || ''));
   const isHttpUrl = (v) => /^https?:\/\/[^\s"'<>\\]+$/i.test(String(v || ''));
@@ -157,6 +159,34 @@ module.exports = function createWorkspace(ROOT) {
 
   function cleanProjects(arr) { return (Array.isArray(arr) ? arr : []).map(cleanProject).filter(Boolean); }
 
+  // Ideas are light-weight project proposals: same media/link/discussion shape.
+  const cleanIdea = (i) => {
+    if (!i || typeof i !== 'object') return null;
+    const title = text(i.title, 200);
+    if (!title.trim()) return null;
+    const notes = text(i.description, 8000);
+    return {
+      id: text(i.id, 40) || crypto.randomBytes(6).toString('hex'),
+      title,
+      description: text(i.description, 4000),
+      notes,
+      pitch: text(i.pitch, 4000),
+      category: text(i.category, 60) || 'Other',
+      stage: ['Spark', 'Research', 'Validating', 'Building', 'Parked'].includes(i.stage) ? i.stage : (['New', 'Review', 'Building', 'Parked'].includes(i.status) ? 'Spark' : 'Spark'),
+      status: ['New', 'Review', 'Building', 'Parked'].includes(i.status) ? i.status : 'New',
+      priority: cleanPriority(i.priority),
+      owner: text(i.owner, 60),
+      effort: text(i.effort, 40),
+      value: text(i.value, 40),
+      tags: (Array.isArray(i.tags) ? i.tags : []).slice(0, 12).map(t => text(t, 40)).filter(Boolean),
+      links: cleanProjectLinks(i.links, i),
+      media: cleanProjectMedia(i.media),
+      created: stamp(i.created) || new Date().toISOString(),
+      updated: stamp(i.updated) || ''
+    };
+  };
+  function cleanIdeas(arr) { return (Array.isArray(arr) ? arr : []).map(cleanIdea).filter(Boolean); }
+
   // Discussion entries on a project: dated, prioritised and completable.
   const cleanComment = (c) => {
     if (!c || typeof c !== 'object') return null;
@@ -186,7 +216,7 @@ module.exports = function createWorkspace(ROOT) {
 
   function cleanComments(arr) { return (Array.isArray(arr) ? arr : []).map(cleanComment).filter(Boolean).slice(0, 400); }
 
-  const KIND_LABEL = { github: 'GitHub', vercel: 'Vercel', figma: 'Figma', docs: 'Docs', preview: 'Preview', other: 'Link' };
+  const KIND_LABEL = { github: 'GitHub', vercel: 'Vercel', figma: 'Figma', docs: 'Docs', drive: 'Drive', sheet: 'Sheet', video: 'Video', preview: 'Preview', other: 'Link' };
 
   const renderProject = (slug) => {
     const d = load();
