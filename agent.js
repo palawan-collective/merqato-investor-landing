@@ -133,12 +133,39 @@ function analyse(d, now = new Date()) {
   };
 }
 
+// Free endpoints on OpenRouter get retired and renamed without warning.
+// Hardcoding slugs is what broke this once (every model answered HTTP 404 and
+// the agent silently fell back to local text). So: keep a small preferred list,
+// and if all of them fail, ask OpenRouter itself which free text models exist
+// right now and try the best few. No key, no cost, no guessing.
 const FREE_MODELS = [
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'google/gemma-2-9b-it:free',
-  'mistralai/mistral-7b-instruct:free',
-  'meta-llama/llama-3.1-8b-instruct:free'
+  'google/gemma-4-31b-it:free',
+  'nvidia/nemotron-3.5-lightning:free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free',
+  'inclusionai/ling-3.2-flash:free'
 ];
+
+let freeCache = { at: 0, list: [] };
+
+async function discoverFreeModels() {
+  if (Date.now() - freeCache.at < 6 * 3600 * 1000 && freeCache.list.length) return freeCache.list;
+  const res = await fetch('https://openrouter.ai/api/v1/models?max_price=0', { signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  const list = (data && data.data ? data.data : [])
+    .filter(m => m && typeof m.id === 'string' && m.id.endsWith(':free'))
+    .filter(m => {
+      const p = m.pricing || {};
+      if (Number(p.prompt) !== 0 || Number(p.completion) !== 0) return false;
+      const out = (m.architecture && m.architecture.output_modalities) || ['text'];
+      return out.includes('text');
+    })
+    .sort((a, b) => (b.created || 0) - (a.created || 0))
+    .slice(0, 6)
+    .map(m => m.id);
+  freeCache = { at: Date.now(), list };
+  return list;
+}
 
 async function askOpenRouter(report, model) {
   const key = process.env.OPENROUTER_API_KEY;
@@ -150,6 +177,28 @@ async function askOpenRouter(report, model) {
     planToday: report.planToday, overdue: report.overdue, dueSoon: report.dueSoon,
     stale: report.stale, tidy: report.tidy, opportunities: report.opportunities, stats: report.stats
   });
+  let lastErr = 'unknown';
+  // Two waves: the preferred list, then whatever OpenRouter says is free today.
+  let tried = models;
+  for (let wave = 0; wave < 2; wave++) {
+    if (wave === 1) {
+      try {
+        const live = await discoverFreeModels();
+        tried = [...new Set(live)].filter(m => !models.includes(m));
+        if (!tried.length) break;
+      } catch (err) {
+        lastErr = 'no free model found (' + (err && err.message ? err.message : 'lookup failed') + ')';
+        break;
+      }
+    }
+    const hit = await tryModels(tried, key, system, user);
+    if (hit.text || hit.model) return hit;
+    if (hit.error) lastErr = hit.error;
+  }
+  return { error: lastErr };
+}
+
+async function tryModels(models, key, system, user) {
   let lastErr = 'unknown';
   for (const m of models) {
     try {

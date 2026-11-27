@@ -68,12 +68,14 @@ Set the key in Coolify under environment variables:
 
 ```bash
 OPENROUTER_API_KEY=sk-or-v1-...        # from openrouter.ai/keys, free tier is fine
-OPENROUTER_MODEL=meta-llama/llama-3.3-70b-instruct:free   # optional
+OPENROUTER_MODEL=google/gemma-4-31b-it:free   # optional, must end in :free
 ```
 
 Without a key the agent still works, labelled "Local analysis". If the key is wrong or the model is rate-limited, the API returns the local text with `aiError` noted — the page never breaks and the agent never invents a fact. Responses are cached for 15 minutes per workspace revision, and **Run again** forces a fresh call.
 
 Free models rate-limit aggressively. If the AI text stops appearing, that is the free tier, not a bug; the local briefing keeps working.
+
+Free model names get retired constantly — that is why the agent does not trust its own list. It tries the preferred models first, then asks OpenRouter which free text models exist right now and tries those. If the diagnostics line says `HTTP 404` for one model but the briefing still appears, the fallback worked; you never need to edit code because a model was renamed.
 
 ## Coolify
 
