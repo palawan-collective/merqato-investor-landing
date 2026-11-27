@@ -113,9 +113,24 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}
 .ws-shot.is-video .ws-shot-media{position:relative}
 .ws-hero{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--ws-line);background:#e9e5de}
 .ws-hero img,.ws-hero video{width:100%;max-height:340px;object-fit:cover;display:block}
-.ws-lightbox{position:fixed;inset:0;background:rgba(8,8,8,.92);display:grid;place-items:center;z-index:80;padding:24px}
-.ws-lightbox img,.ws-lightbox video{max-width:96vw;max-height:88vh;border-radius:8px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
-.ws-lightbox button{position:fixed;top:18px;right:20px;border:0;border-radius:8px;background:#fff;color:#111;font-weight:800;padding:9px 14px;cursor:pointer}
+.ws-lightbox{position:fixed;inset:0;background:rgba(8,8,8,.95);z-index:90;display:flex;flex-direction:column;padding:14px;gap:10px}
+.ws-lb-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#eee;font-size:13px;flex:0 0 auto}
+.ws-lb-top .ws-lb-count{font-weight:800;letter-spacing:.04em}
+.ws-lb-top .ws-lb-title{opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60vw}
+.ws-lb-actions{display:flex;gap:7px}
+.ws-lb-actions button,.ws-lb-nav{border:1px solid #555;background:#1a1a1a;color:#fff;border-radius:8px;padding:8px 13px;font-weight:800;font-size:13px;cursor:pointer}
+.ws-lb-actions button:hover,.ws-lb-nav:hover{background:#333;border-color:#888}
+.ws-lb-stage{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:0;position:relative}
+.ws-lb-stage img,.ws-lb-stage video{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px;box-shadow:0 30px 80px rgba(0,0,0,.55);background:#000}
+.ws-lb-nav{position:absolute;top:50%;transform:translateY(-50%);font-size:20px;padding:12px 16px;line-height:1}
+.ws-lb-nav.prev{left:6px}.ws-lb-nav.next{right:6px}
+.ws-lb-nav[disabled]{opacity:.25;cursor:not-allowed}
+.ws-lb-strip{flex:0 0 auto;display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px}
+.ws-lb-strip button{flex:0 0 auto;width:76px;height:52px;border:2px solid transparent;border-radius:6px;overflow:hidden;padding:0;background:#222;cursor:pointer}
+.ws-lb-strip button.on{border-color:var(--ws-red)}
+.ws-lb-strip img,.ws-lb-strip video{width:100%;height:100%;object-fit:cover;display:block}
+.ws-lb-counter{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px}
+@media(max-width:620px){.ws-lb-strip{display:none}.ws-lb-nav{padding:9px 12px;font-size:16px}.ws-lb-top .ws-lb-title{max-width:40vw}}
 
 /* ---- visual dashboard board ---- */
 .ws-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -592,10 +607,14 @@ function renderFolder(){
           ${p.notes?`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:16px 0 5px">Internal notes</h4><div class="ws-muted" style="white-space:pre-wrap;font-size:13px;color:#3d3933">${esc(p.notes)}</div>`:''}
           <div class="ws-chiprow" style="margin-top:12px">${(p.tags||[]).map(t=>`<span class="ws-chip">${esc(t)}</span>`).join('')}</div>
         </div>
-        <div>${cover
-          ? `<div class="ws-hero"><img src="${esc(cover.url)}" alt="${esc(p.name)} cover" data-lightbox="${esc(cover.url)}" style="cursor:zoom-in"></div>`
-          : (p.media||[]).length?`<div class="ws-empty">No still image — this project has video only.</div>`:'<div class="ws-empty">No cover image yet. <button class="ws-btn small" data-editproject="'+esc(p.id)+'">Add visuals</button></div>'}
-          ${(p.media||[]).length>1?`<div class="ws-shotgrid" style="margin-top:10px;grid-template-columns:repeat(auto-fill,minmax(88px,1fr))">${(p.media||[]).slice(0,6).map(m=>`<div class="ws-shot" style="border-radius:7px"><div class="ws-shot-media" style="aspect-ratio:1/1">${m.type==='video'?`<video src="${esc(m.url)}" muted preload="metadata"></video>`:`<img src="${esc(m.url)}" alt="" loading="lazy" data-lightbox="${esc(m.url)}" style="cursor:zoom-in">`}</div></div>`).join('')}</div>`:''}
+        <div>${(p.media||[]).length
+          ? `<div class="ws-shotgrid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">${(p.media||[]).map((m,n)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}" style="cursor:zoom-in" data-openviewer="${esc(p.id)}|${n}" data-openviewerkind="project">
+              <div class="ws-shot-media">${m.type==='video'
+                ? `<video src="${esc(m.url)}" muted preload="metadata" playsinline></video><div class="ws-tile-play"><span>▶</span></div>`
+                : `<img src="${esc(m.url)}" alt="${esc(m.title||m.name||p.name+' image '+(n+1))}" loading="lazy">`}</div>
+              <figcaption class="ws-shot-cap"><span>${esc(m.title||m.name||(m.type==='video'?'Video':'Image '+(n+1)))}</span></figcaption></figure>`).join('')}</div>
+             <div class="ws-muted" style="margin-top:8px">Click any image to open the full-size viewer — use ← → to browse all ${(p.media||[]).length}.</div>`
+          : `<div class="ws-empty">No visuals yet. <button class="ws-btn small" data-editproject="${esc(p.id)}">Add visuals</button></div>`}
         </div>
       </div>
       <hr class="ws-hr">
@@ -606,14 +625,14 @@ function renderFolder(){
     body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Code, deploy and working links</h4><div class="ws-chiprow">${linkCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Manage links</button>`;
   }
   if(folderTab==='media'){
-    const shots=(p.media||[]).map((m,i)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}">
+    const shots=(p.media||[]).map((m,i)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}" style="cursor:zoom-in" data-openviewer="${esc(p.id)}|${i}" data-openviewerkind="project">
       <div class="ws-shot-media">${m.type==='video'
-        ? `<video src="${esc(m.url)}" controls preload="metadata" playsinline></video>`
-        : `<img src="${esc(m.url)}" alt="${esc(m.title||m.name||p.name+' image '+(i+1))}" loading="lazy" data-lightbox="${esc(m.url)}" style="cursor:zoom-in">`}</div>
+        ? `<video src="${esc(m.url)}" muted preload="metadata" playsinline></video><div class="ws-tile-play"><span>▶</span></div>`
+        : `<img src="${esc(m.url)}" alt="${esc(m.title||m.name||p.name+' image '+(i+1))}" loading="lazy">`}</div>
       <figcaption class="ws-shot-cap"><span>${esc(m.title||m.name||(m.type==='video'?'Video':'Image '+(i+1)))}</span><button class="ws-btn small" data-mediadel-project="${esc(p.id)}|${esc(m.id)}">Remove</button></figcaption></figure>`).join('');
     body.innerHTML=`<h4 style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6b665f;margin:0 0 8px">Every image and video for this project (${(p.media||[]).length})</h4>
       <div class="ws-shotgrid">${shots||'<div class="ws-empty" style="grid-column:1/-1">No visuals yet. Add screenshots, photos or a video.</div>'}</div>
-      <hr class="ws-hr"><div class="ws-row"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Add images or video</button><span class="ws-muted">Images open full size when clicked.</span></div>`;
+      <hr class="ws-hr"><div class="ws-row"><button class="ws-btn primary" data-editproject="${esc(p.id)}">Add images or video</button><span class="ws-muted">Click any image to open it full size and browse with ← →.</span></div>`;
   }
   if(folderTab==='thread'){
     body.innerHTML=`
@@ -722,10 +741,10 @@ function renderIdeaPage(){
   const th=threadForIdea(i.id),open=th.filter(c=>!c.done),done=th.filter(c=>c.done);
   const tabs=[['overview','Overview'],['links',`Links (${(i.links||[]).length})`],['media',`Visuals (${(i.media||[]).length})`],['thread',`Discussion (${open.length} open · ${done.length} done)`]];
   const linkCards=(i.links||[]).map(l=>`<a class="ws-chip" href="${esc(l.url)}" target="_blank" rel="noopener" style="display:block;padding:11px 13px"><span class="ws-linkbadge ${esc(l.kind||'other')}">${esc(l.kind||'link')}</span> <strong>${esc(l.label||l.url.replace(/^https?:\/\//,''))}</strong><div class="ws-muted" style="margin-top:4px">${esc(l.url)}</div></a>`).join('')||'<div class="ws-empty">No links yet. <button class="ws-btn small" data-editidea="${esc(i.id)}">Add links</button></div>';
-  const shots=(i.media||[]).map((m,n)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}">
+  const shots=(i.media||[]).map((m,n)=>`<figure class="ws-shot${m.type==='video'?' is-video':''}" style="cursor:zoom-in" data-openviewer="${esc(i.id)}|${n}" data-openviewerkind="idea">
     <div class="ws-shot-media">${m.type==='video'
       ? `<video src="${esc(m.url)}" controls preload="metadata" playsinline></video>`
-      : `<img src="${esc(m.url)}" alt="${esc(m.title||'Idea visual '+(n+1))}" loading="lazy" data-lightbox="${esc(m.url)}" style="cursor:zoom-in">`}</div>
+      : `<img src="${esc(m.url)}" alt="${esc(m.title||'Idea visual '+(n+1))}" loading="lazy">`}</div>
     <figcaption class="ws-shot-cap"><span>${esc(m.title||m.name||(m.type==='video'?'Video':'Image '+(n+1)))}</span></figcaption></figure>`).join('');
   const entry=c=>`<div class="ws-entry ${esc((c.priority||'Medium').toLowerCase())}${c.done?' done':''}">
     <div class="ws-entry-head"><strong>${esc(c.author||'Partner')}</strong>${prioPill(c.priority)}<span>${c.done?'Completed '+date(c.completedAt):'Raised '+date(c.created)}</span>${c.done&&c.completedBy?`<span>· by ${esc(c.completedBy)}</span>`:''}</div>
@@ -763,7 +782,7 @@ function renderIdeaPage(){
         </div>
         <hr class="ws-hr"><div class="ws-chiprow">${linkCards}</div>
       </div>
-      <div>${cover?`<div class="ws-hero"><img src="${esc(cover)}" alt="${esc(i.title)}" data-lightbox="${esc(cover)}" style="cursor:zoom-in"></div>`:'<div class="ws-empty">No visuals yet.</div>'}</div>
+      <div>${cover?`<div class="ws-hero" style="cursor:zoom-in" data-openviewer="${esc(i.id)}|0" data-openviewerkind="idea"><img src="${esc(cover)}" alt="${esc(i.title)}"></div>`:'<div class="ws-empty">No visuals yet.</div>'}</div>
     </div>`;
   }
   if(ideaTab==='links'){body.innerHTML=`<div class="ws-chiprow">${linkCards}</div><hr class="ws-hr"><button class="ws-btn primary" data-editidea="${esc(i.id)}">Manage links</button>`}
@@ -816,15 +835,92 @@ function renderBrandForm(){
 function renderAll(){refreshSelects();renderDashboard();renderProjects();renderIdeas();renderFiles();renderLinks();renderComments();renderBrandForm();if(openFolder)renderFolder()}
 $('wsNav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)go(b.dataset.view)});
 $('wsSearch').addEventListener('input',renderAll);
+// ---------- full-size viewer: click any image, browse with arrows ----------
+let viewer=null; // {items:[], index, context}
+function mediaFor(kind,id){
+  const list=kind==='idea'?S.ideas:S.projects;
+  const item=list.find(x=>x.id===id);
+  return item?(item.media||[]).slice():[];
+}
+function openViewer(kind,id,index){
+  kind=(kind==='idea')?'idea':'project';
+  const items=mediaFor(kind,id);
+  if(!items.length)return;
+  viewer={items,index:Math.max(0,Math.min(index,items.length-1)),kind,id};
+  drawViewer();
+  document.body.style.overflow='hidden';
+  document.addEventListener('keydown',viewerKeys);
+}
+function closeViewer(){
+  viewer=null;
+  const el=document.querySelector('.ws-lightbox');
+  if(el)el.remove();
+  document.body.style.overflow='';
+  document.removeEventListener('keydown',viewerKeys);
+}
+function viewerKeys(e){
+  if(!viewer)return;
+  if(e.key==='Escape'){closeViewer();return}
+  if(e.key==='ArrowRight'){e.preventDefault();stepViewer(1)}
+  if(e.key==='ArrowLeft'){e.preventDefault();stepViewer(-1)}
+}
+function stepViewer(d){
+  if(!viewer)return;
+  const n=viewer.items.length;
+  viewer.index=(viewer.index+d+n)%n;
+  drawViewer();
+}
+function goViewer(i){
+  if(!viewer)return;
+  viewer.index=i;drawViewer();
+}
+function drawViewer(){
+  if(!viewer)return;
+  const {items,index}=viewer;
+  const m=items[index]||{};
+  const url=m.url||'';
+  const isVideo=m.type==='video'||/\.(mp4|webm|mov)$/i.test(url);
+  const label=m.title||m.name||(isVideo?'Video':'Image '+(index+1));
+  let box=document.querySelector('.ws-lightbox');
+  if(!box){box=document.createElement('div');box.className='ws-lightbox';document.body.appendChild(box)}
+  box.innerHTML=`
+    <div class="ws-lb-top">
+      <div class="ws-lb-title">${esc(label)}</div>
+      <div class="ws-lb-actions">
+        <span class="ws-lb-count">${index+1} / ${items.length}</span>
+        <a href="${esc(url)}" target="_blank" rel="noopener" style="color:#fff;text-decoration:underline;align-self:center;font-size:12px">Open original ↗</a>
+        <button type="button" data-lbclose="1">Close ✕</button>
+      </div>
+    </div>
+    <div class="ws-lb-stage">
+      ${items.length>1?`<button class="ws-lb-nav prev" type="button" data-lbstep="-1" aria-label="Previous">‹</button>`:''}
+      ${isVideo
+        ? `<video src="${esc(url)}" controls autoplay playsinline></video>`
+        : `<img src="${esc(url)}" alt="${esc(label)}">`}
+      ${items.length>1?`<button class="ws-lb-nav next" type="button" data-lbstep="1" aria-label="Next">›</button>`:''}
+      <span class="ws-lb-counter">${index+1} of ${items.length}</span>
+    </div>
+    <div class="ws-lb-strip">${items.map((it,n)=>`<button type="button" data-lbgoto="${n}" class="${n===index?'on':''}" title="${esc(it.title||it.name||'Visual '+(n+1))}">
+      ${it.type==='video'||/\.(mp4|webm|mov)$/i.test(it.url||'')?`<video src="${esc(it.url)}" muted preload="metadata"></video>`:`<img src="${esc(it.url)}" alt="" loading="lazy">`}</button>`).join('')}</div>`;
+}
+
 document.addEventListener('click',async e=>{
+  // viewer controls
+  if(e.target.closest('[data-lbclose]')||e.target.classList.contains('ws-lightbox')){closeViewer();return}
+  const st=e.target.closest('[data-lbstep]');
+  if(st){stepViewer(Number(st.dataset.lbstep));return}
+  const gt=e.target.closest('[data-lbgoto]');
+  if(gt){goViewer(Number(gt.dataset.lbgoto));return}
+  const ov=e.target.closest('[data-openviewer]');
+  if(ov){
+    const [id,idx]=(ov.dataset.openviewer||'').split('|');
+    const kind=ov.dataset.openviewerkind||'project';
+    openViewer(kind,id,Number(idx)||0);
+    return;
+  }
   const z=e.target.closest('[data-lightbox]');
   if(z){
-    const url=z.dataset.lightbox;
-    const box=document.createElement('div');
-    box.className='ws-lightbox';
-    box.innerHTML=`<button type="button">Close ✕</button>${/\.(mp4|webm|mov)$/i.test(url)?`<video src="${esc(url)}" controls autoplay playsinline></video>`:`<img src="${esc(url)}" alt="Preview">`}`;
-    box.addEventListener('click',ev=>{if(ev.target===box||ev.target.tagName==='BUTTON')box.remove()});
-    document.body.appendChild(box);
+    openViewer('project',null,0);
     return;
   }
   const rm=e.target.closest('[data-mediadel-project]');
