@@ -100,6 +100,32 @@ Check in this order. Each step rules out one cause, so do not skip ahead.
 
 3. **Still stuck?** Open `/workspace` and read the small grey line at the bottom-left of the sidebar. `build 2026-11-27-v8` means new code; `build unversioned` means old code is still being served.
 
+## Page editing: saved as a diff, not a copy
+
+The page editor (`/admin/edit`) does **not** store a copy of the page. It compares the preview
+with the page it was loaded from and saves only what changed — a sentence replaced, a link
+changed, a colour added, a card deleted — into `data/site.json` as `patches`.
+
+This matters because of how the old editor worked. It saved a full clone of `<main>` and `<nav>`,
+and the server pasted that clone over `index.html` on every request. Any later change to
+`index.html` — a footer button, a mobile fix — was therefore invisible: the server was running
+new code but serving old markup. That is what "I deployed and nothing changed" looked like.
+
+Patch paths look like `section:1>div:0>h2:0`: tag name, colon, position among same-tag siblings.
+They survive edits elsewhere on the page.
+
+### If you see a black banner at the bottom of the site
+
+It means `data/site.json` still holds a save from the old editor. The banner names the date and
+tells you what to do: open the workstation → *Edit site design* → press **Save** once. That
+converts the file to patches and the banner disappears. The old save is also copied to
+`data/site.backup.json` before anything is overwritten, so nothing is lost.
+
+### Round-trip test
+
+`node test/page-patches.test.js` runs 21 checks against the patch engine, including the case that
+started all this: the Admin button in the footer must survive an unrelated text edit.
+
 ## Notes
 
 Saved HTML is stored in `data/site.json` and the previous version in `data/site.backup.json`. Uploaded files live in `uploads/`. Removing media from the *page* does not immediately purge unused files from disk; storage cleanup can be managed separately. The editor is for trusted administrators and not a public multi-user CMS. Avoid deleting sections required for the interactive calculator.
