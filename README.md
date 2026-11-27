@@ -42,11 +42,9 @@ That starts the whole thing on port 3000:
 | `/admin/edit` | the secondary page editor |
 | `/health` | health check + build marker for Coolify |
 
-### The password is optional
+### No login. Nothing to configure.
 
-`ADMIN_PASSWORD` is **not required**. Leave it unset and the workstation is simply open, which is fine while the site sits behind Cloudflare Access. If you later want the workstation to ask for a password, set `ADMIN_PASSWORD` to 8+ characters in the Coolify environment and it will start prompting.
-
-There is no login screen and no build step. If the site is not showing your changes, the deploy is not running this code — check `/health` and compare the `build` value.
+There is no login screen, no password, and no build step — on `/workspace` or on `/admin/edit`. That is intentional while the site is being built. If you want it private later, put Cloudflare Access in front of the domain; do not add a password to the app.
 
 ## Coolify
 
